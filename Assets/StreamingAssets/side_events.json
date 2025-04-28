@@ -1,0 +1,63 @@
+{
+    "events": [  
+      {
+        "body": "DEA sets up a random traffic stop on the interstate.",
+        "background": "bb_police_stop",
+        "charLeft": "Hank_front",
+        "tag": "police",
+        "minSuspicion": 20,
+        "maxScene": 8,
+        "options": [
+          { "text": "Stay cool and answer questions.", "profit": 0,  "relationships": 0,  "suspicion": -5, "nextNode": -2 },
+          { "text": "Floor it—run the checkpoint!",    "profit": 0,  "relationships": -5, "suspicion": 10, "nextNode": -2 }
+        ]
+      },
+  
+      {
+        "body": "Saul calls. He has a ‘tax question’—translation: money-laundering pitch.",
+        "background": "bb_saul_office",
+        "charLeft": "SaulGoodman_front",
+        "tag": "rare",
+        "options": [
+          { "text": "Hear him out.",    "profit": 5,  "relationships": 5,  "suspicion": 3,  "nextNode": -2 },
+          { "text": "Ignore the call.", "profit": 0,  "relationships": -2, "suspicion": 0,  "nextNode": -2 }
+        ]
+      },
+  
+      {
+        "body": "Cancer treatment day leaves you exhausted.",
+        "background": "bb_hospital",
+        "charLeft": "",
+        "tag": "health",
+        "options": [
+          { "text": "Skip the cook to rest.",        "profit": -5, "relationships": 0,  "suspicion": -3, "nextNode": -2 },
+          { "text": "Push through and cook anyway.", "profit":  8, "relationships": -2, "suspicion":  4, "nextNode": -2 }
+        ]
+      },  
+      {
+        "body": "A cartel courier hints your product is stepping on their turf.",
+        "background": "bb_desert",
+        "charLeft": "Tuco_front",
+        "tag": "cartel",
+        "minSuspicion": 10,
+        "maxScene": 6,
+        "options": [
+          { "text": "Pay a tribute—keep the peace.",      "profit": -8, "relationships": 4,  "suspicion": -2, "nextNode": -2 },
+          { "text": "Refuse. You own this turf now.",     "profit": 12, "relationships": -6, "suspicion":  6, "nextNode": -2 }
+        ]
+      },
+  
+      {
+        "body": "Marie shows up unannounced, looking for Skyler.",
+        "background": "bb_walthouse",
+        "charLeft": "Marie_front",
+        "tag": "rare",
+        "maxScene": 4,
+        "options": [
+          { "text": "Make polite small talk over coffee.", "profit": 0,  "relationships": 3,  "suspicion": 2,  "nextNode": -2 },
+          { "text": "Lie that you’re late for work—rush her out.", "profit": 0, "relationships": -4, "suspicion": -1, "nextNode": -2 }
+        ]
+      }
+    ]
+  }
+  
