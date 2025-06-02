@@ -36,8 +36,24 @@ public class FeedbackSystem : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
-        originalCameraPos = mainCamera.transform.position;
+        if (mainCamera != null)
+            originalCameraPos = mainCamera.transform.position;
         audioManager = FindFirstObjectByType<AudioManager>();
+        
+        // Initialize animation curves if not set
+        if (floatCurve == null || floatCurve.keys.Length == 0)
+        {
+            floatCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        }
+        
+        if (scaleCurve == null || scaleCurve.keys.Length == 0)
+        {
+            scaleCurve = new AnimationCurve();
+            scaleCurve.AddKey(0f, 0.5f);
+            scaleCurve.AddKey(0.1f, 1.2f);
+            scaleCurve.AddKey(0.5f, 1f);
+            scaleCurve.AddKey(1f, 0.8f);
+        }
         
         if (screenFlashImage == null)
         {
