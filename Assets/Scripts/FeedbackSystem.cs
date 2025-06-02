@@ -109,11 +109,32 @@ public class FeedbackSystem : MonoBehaviour
     
     void ShowFloatingText(int actualValue, int expectedValue, string statName, Vector3 position)
     {
-        GameObject textObj = Instantiate(floatingTextPrefab ?? CreateFloatingTextPrefab(), feedbackContainer ?? transform);
+        if (floatingTextPrefab == null)
+        {
+            floatingTextPrefab = CreateFloatingTextPrefab();
+        }
+        
+        Transform parent = feedbackContainer ?? transform;
+        GameObject textObj = Instantiate(floatingTextPrefab, parent);
+        
+        if (textObj == null)
+        {
+            Debug.LogError("Failed to instantiate floating text prefab");
+            return;
+        }
+        
         RectTransform rect = textObj.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            rect = textObj.AddComponent<RectTransform>();
+        }
         rect.position = position;
         
-        TextMeshProUGUI text = textObj.GetComponent<TextMeshProUGUI>() ?? textObj.AddComponent<TextMeshProUGUI>();
+        TextMeshProUGUI text = textObj.GetComponent<TextMeshProUGUI>();
+        if (text == null)
+        {
+            text = textObj.AddComponent<TextMeshProUGUI>();
+        }
         
         // Format text
         string sign = actualValue > 0 ? "+" : "";
@@ -149,31 +170,51 @@ public class FeedbackSystem : MonoBehaviour
     
     IEnumerator AnimateFloatingText(GameObject textObj, RectTransform rect)
     {
+        if (textObj == null || rect == null)
+        {
+            Debug.LogError("AnimateFloatingText: null object or rect");
+            yield break;
+        }
+        
         Vector3 startPos = rect.position;
         float elapsed = 0f;
+        var text = textObj.GetComponent<TextMeshProUGUI>();
         
-        while (elapsed < floatDuration)
+        if (text == null)
+        {
+            Debug.LogError("AnimateFloatingText: no TextMeshProUGUI component");
+            Destroy(textObj);
+            yield break;
+        }
+        
+        while (elapsed < floatDuration && textObj != null)
         {
             elapsed += Time.deltaTime;
             float progress = elapsed / floatDuration;
             
             // Move up
-            rect.position = startPos + Vector3.up * floatHeight * floatCurve.Evaluate(progress);
-            
-            // Scale
-            float scale = scaleCurve.Evaluate(progress);
-            rect.localScale = Vector3.one * scale;
+            if (rect != null)
+            {
+                rect.position = startPos + Vector3.up * floatHeight * floatCurve.Evaluate(progress);
+                
+                // Scale
+                float scale = scaleCurve.Evaluate(progress);
+                rect.localScale = Vector3.one * scale;
+            }
             
             // Fade
-            var text = textObj.GetComponent<TextMeshProUGUI>();
-            Color c = text.color;
-            c.a = 1f - progress;
-            text.color = c;
+            if (text != null)
+            {
+                Color c = text.color;
+                c.a = 1f - progress;
+                text.color = c;
+            }
             
             yield return null;
         }
         
-        Destroy(textObj);
+        if (textObj != null)
+            Destroy(textObj);
     }
     
     void ShowCriticalEffect(CriticalType type, Vector3 position)
@@ -262,20 +303,35 @@ public class FeedbackSystem : MonoBehaviour
     
     IEnumerator ScreenShake()
     {
+        // Re-acquire camera reference in case scene changed
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogWarning("ScreenShake: No main camera found");
+                yield break;
+            }
+            originalCameraPos = mainCamera.transform.position;
+        }
+        
         float elapsed = 0f;
         
-        while (elapsed < screenShakeDuration)
+        while (elapsed < screenShakeDuration && mainCamera != null)
         {
             elapsed += Time.deltaTime;
             float progress = 1f - (elapsed / screenShakeDuration);
             
             Vector3 offset = Random.insideUnitSphere * screenShakeIntensity * progress;
             offset.z = 0;
-            mainCamera.transform.position = originalCameraPos + offset;
+            
+            if (mainCamera != null && mainCamera.transform != null)
+                mainCamera.transform.position = originalCameraPos + offset;
             
             yield return null;
         }
         
-        mainCamera.transform.position = originalCameraPos;
+        if (mainCamera != null && mainCamera.transform != null)
+            mainCamera.transform.position = originalCameraPos;
     }
 }
