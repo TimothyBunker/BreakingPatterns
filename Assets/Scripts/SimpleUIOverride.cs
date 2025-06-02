@@ -62,8 +62,11 @@ public class SimpleUIOverride : MonoBehaviour
     
     void CreateSimpleUI()
     {
+        // Declare UI objects for proper ordering
+        GameObject bgObj, leftPanel, rightPanel, leftCharObj, rightCharObj, dialogueObj, statsPanel;
+        
         // Create background
-        GameObject bgObj = new GameObject("NewBackground");
+        bgObj = new GameObject("NewBackground");
         bgObj.transform.SetParent(mainCanvas.transform, false);
         newBackgroundImage = bgObj.AddComponent<Image>();
         newBackgroundImage.color = Color.gray; // Default color
@@ -74,8 +77,15 @@ public class SimpleUIOverride : MonoBehaviour
         bgRect.sizeDelta = Vector2.zero;
         bgRect.SetAsFirstSibling(); // Ensure it's at the back
         
+        // Set proper layer order from back to front:
+        // 1. Background (index 0)
+        // 2. Character panels (index 1-2)  
+        // 3. Characters (index 3-4)
+        // 4. Dialogue panel (index 5)
+        // 5. Stats panel (index 6)
+        
         // Create semi-transparent panels behind characters
-        GameObject leftPanel = new GameObject("LeftCharacterPanel");
+        leftPanel = new GameObject("LeftCharacterPanel");
         leftPanel.transform.SetParent(mainCanvas.transform, false);
         Image leftPanelImg = leftPanel.AddComponent<Image>();
         leftPanelImg.color = new Color(0, 0, 0, 0.3f);
@@ -83,7 +93,7 @@ public class SimpleUIOverride : MonoBehaviour
         leftPanelRect.anchorMin = new Vector2(0, 0.15f);
         leftPanelRect.anchorMax = new Vector2(0.35f, 0.85f);
         
-        GameObject rightPanel = new GameObject("RightCharacterPanel");
+        rightPanel = new GameObject("RightCharacterPanel");
         rightPanel.transform.SetParent(mainCanvas.transform, false);
         Image rightPanelImg = rightPanel.AddComponent<Image>();
         rightPanelImg.color = new Color(0, 0, 0, 0.3f);
@@ -92,7 +102,7 @@ public class SimpleUIOverride : MonoBehaviour
         rightPanelRect.anchorMax = new Vector2(1f, 0.85f);
         
         // Create left character (larger size)
-        GameObject leftCharObj = new GameObject("NewLeftCharacter");
+        leftCharObj = new GameObject("NewLeftCharacter");
         leftCharObj.transform.SetParent(mainCanvas.transform, false);
         newLeftCharacter = leftCharObj.AddComponent<Image>();
         newLeftCharacter.preserveAspect = true;
@@ -104,7 +114,7 @@ public class SimpleUIOverride : MonoBehaviour
         leftRect.sizeDelta = Vector2.zero;
         
         // Create right character (larger size)
-        GameObject rightCharObj = new GameObject("NewRightCharacter");
+        rightCharObj = new GameObject("NewRightCharacter");
         rightCharObj.transform.SetParent(mainCanvas.transform, false);
         newRightCharacter = rightCharObj.AddComponent<Image>();
         newRightCharacter.preserveAspect = true;
@@ -116,7 +126,7 @@ public class SimpleUIOverride : MonoBehaviour
         rightRect.sizeDelta = Vector2.zero;
         
         // Create dialogue panel with scrollable text
-        GameObject dialogueObj = new GameObject("NewDialoguePanel");
+        dialogueObj = new GameObject("NewDialoguePanel");
         dialogueObj.transform.SetParent(mainCanvas.transform, false);
         newDialoguePanel = dialogueObj.AddComponent<RectTransform>();
         
@@ -183,7 +193,7 @@ public class SimpleUIOverride : MonoBehaviour
         dialogueScrollRect = scrollRect;
         
         // Create stats panel at top
-        GameObject statsPanel = new GameObject("NewStatsPanel");
+        statsPanel = new GameObject("NewStatsPanel");
         statsPanel.transform.SetParent(mainCanvas.transform, false);
         RectTransform statsRect = statsPanel.AddComponent<RectTransform>();
         statsRect.anchorMin = new Vector2(0.1f, 0.9f);
@@ -211,6 +221,17 @@ public class SimpleUIOverride : MonoBehaviour
             CreateStatDisplay("Relations", statsPanel.transform, gm.relText);
             CreateStatDisplay("Suspicion", statsPanel.transform, gm.suspText);
         }
+        
+        // Set proper layer ordering
+        bgObj.transform.SetSiblingIndex(0);           // Background at back
+        leftPanel.transform.SetSiblingIndex(1);       // Character panel 1
+        rightPanel.transform.SetSiblingIndex(2);      // Character panel 2
+        leftCharObj.transform.SetSiblingIndex(3);     // Left character
+        rightCharObj.transform.SetSiblingIndex(4);    // Right character
+        dialogueObj.transform.SetSiblingIndex(5);     // Dialogue panel
+        statsPanel.transform.SetSiblingIndex(6);      // Stats panel on top
+        
+        Debug.Log("SimpleUIOverride: UI creation complete with proper layering");
     }
     
     void CreateStatDisplay(string label, Transform parent, TMP_Text originalText)
