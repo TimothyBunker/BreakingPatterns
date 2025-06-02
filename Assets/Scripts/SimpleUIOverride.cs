@@ -15,6 +15,7 @@ public class SimpleUIOverride : MonoBehaviour
     [SerializeField] private Image newRightCharacter;
     [SerializeField] private TextMeshProUGUI newDialogueText;
     [SerializeField] private RectTransform newDialoguePanel;
+    [SerializeField] private ScrollRect dialogueScrollRect;
     
     void Start()
     {
@@ -73,57 +74,170 @@ public class SimpleUIOverride : MonoBehaviour
         bgRect.sizeDelta = Vector2.zero;
         bgRect.SetAsFirstSibling(); // Ensure it's at the back
         
-        // Create left character
+        // Create semi-transparent panels behind characters
+        GameObject leftPanel = new GameObject("LeftCharacterPanel");
+        leftPanel.transform.SetParent(mainCanvas.transform, false);
+        Image leftPanelImg = leftPanel.AddComponent<Image>();
+        leftPanelImg.color = new Color(0, 0, 0, 0.3f);
+        RectTransform leftPanelRect = leftPanel.GetComponent<RectTransform>();
+        leftPanelRect.anchorMin = new Vector2(0, 0.15f);
+        leftPanelRect.anchorMax = new Vector2(0.35f, 0.85f);
+        
+        GameObject rightPanel = new GameObject("RightCharacterPanel");
+        rightPanel.transform.SetParent(mainCanvas.transform, false);
+        Image rightPanelImg = rightPanel.AddComponent<Image>();
+        rightPanelImg.color = new Color(0, 0, 0, 0.3f);
+        RectTransform rightPanelRect = rightPanel.GetComponent<RectTransform>();
+        rightPanelRect.anchorMin = new Vector2(0.65f, 0.15f);
+        rightPanelRect.anchorMax = new Vector2(1f, 0.85f);
+        
+        // Create left character (larger size)
         GameObject leftCharObj = new GameObject("NewLeftCharacter");
         leftCharObj.transform.SetParent(mainCanvas.transform, false);
         newLeftCharacter = leftCharObj.AddComponent<Image>();
         newLeftCharacter.preserveAspect = true;
         
         RectTransform leftRect = leftCharObj.GetComponent<RectTransform>();
-        leftRect.anchorMin = new Vector2(0, 0.2f);
-        leftRect.anchorMax = new Vector2(0.3f, 0.8f);
+        leftRect.anchorMin = new Vector2(0.05f, 0.15f);
+        leftRect.anchorMax = new Vector2(0.35f, 0.85f);
         leftRect.anchoredPosition = Vector2.zero;
         leftRect.sizeDelta = Vector2.zero;
         
-        // Create right character  
+        // Create right character (larger size)
         GameObject rightCharObj = new GameObject("NewRightCharacter");
         rightCharObj.transform.SetParent(mainCanvas.transform, false);
         newRightCharacter = rightCharObj.AddComponent<Image>();
         newRightCharacter.preserveAspect = true;
         
         RectTransform rightRect = rightCharObj.GetComponent<RectTransform>();
-        rightRect.anchorMin = new Vector2(0.7f, 0.2f);
-        rightRect.anchorMax = new Vector2(1f, 0.8f);
+        rightRect.anchorMin = new Vector2(0.65f, 0.15f);
+        rightRect.anchorMax = new Vector2(0.95f, 0.85f);
         rightRect.anchoredPosition = Vector2.zero;
         rightRect.sizeDelta = Vector2.zero;
         
-        // Create dialogue panel
+        // Create dialogue panel with scrollable text
         GameObject dialogueObj = new GameObject("NewDialoguePanel");
         dialogueObj.transform.SetParent(mainCanvas.transform, false);
         newDialoguePanel = dialogueObj.AddComponent<RectTransform>();
         
         Image panelBg = dialogueObj.AddComponent<Image>();
-        panelBg.color = new Color(0, 0, 0, 0.8f);
+        panelBg.color = new Color(0, 0, 0, 0.9f);
         
         newDialoguePanel.anchorMin = new Vector2(0.1f, 0);
-        newDialoguePanel.anchorMax = new Vector2(0.9f, 0.3f);
+        newDialoguePanel.anchorMax = new Vector2(0.9f, 0.35f);
         newDialoguePanel.offsetMin = new Vector2(0, 20);
         newDialoguePanel.offsetMax = new Vector2(0, 0);
         
+        // Create scroll view for dialogue text
+        GameObject scrollViewObj = new GameObject("DialogueScrollView");
+        scrollViewObj.transform.SetParent(newDialoguePanel, false);
+        
+        ScrollRect scrollRect = scrollViewObj.AddComponent<ScrollRect>();
+        scrollRect.vertical = true;
+        scrollRect.horizontal = false;
+        
+        RectTransform scrollRectTransform = scrollViewObj.GetComponent<RectTransform>();
+        scrollRectTransform.anchorMin = Vector2.zero;
+        scrollRectTransform.anchorMax = Vector2.one;
+        scrollRectTransform.offsetMin = new Vector2(10, 10);
+        scrollRectTransform.offsetMax = new Vector2(-10, -10);
+        
+        // Create viewport
+        GameObject viewportObj = new GameObject("Viewport");
+        viewportObj.transform.SetParent(scrollViewObj.transform, false);
+        RectTransform viewportRect = viewportObj.AddComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = Vector2.zero;
+        viewportRect.offsetMax = Vector2.zero;
+        
+        Image viewportImage = viewportObj.AddComponent<Image>();
+        viewportImage.color = Color.clear;
+        Mask viewportMask = viewportObj.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = false;
+        
+        // Create content container
+        GameObject contentObj = new GameObject("Content");
+        contentObj.transform.SetParent(viewportObj.transform, false);
+        RectTransform contentRect = contentObj.AddComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0, 1);
+        contentRect.anchorMax = new Vector2(1, 1);
+        contentRect.pivot = new Vector2(0.5f, 1);
+        contentRect.anchoredPosition = Vector2.zero;
+        
         // Create dialogue text
-        GameObject textObj = new GameObject("NewDialogueText");
-        textObj.transform.SetParent(newDialoguePanel, false);
-        newDialogueText = textObj.AddComponent<TextMeshProUGUI>();
-        
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(20, 20);
-        textRect.offsetMax = new Vector2(-20, -20);
-        
-        newDialogueText.fontSize = 20;
+        newDialogueText = contentObj.AddComponent<TextMeshProUGUI>();
+        newDialogueText.fontSize = 18;
         newDialogueText.color = Color.white;
         newDialogueText.alignment = TextAlignmentOptions.TopLeft;
+        
+        // Add content size fitter
+        ContentSizeFitter fitter = contentObj.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
+        // Configure scroll rect
+        scrollRect.content = contentRect;
+        scrollRect.viewport = viewportRect;
+        
+        // Store reference
+        dialogueScrollRect = scrollRect;
+        
+        // Create stats panel at top
+        GameObject statsPanel = new GameObject("NewStatsPanel");
+        statsPanel.transform.SetParent(mainCanvas.transform, false);
+        RectTransform statsRect = statsPanel.AddComponent<RectTransform>();
+        statsRect.anchorMin = new Vector2(0.1f, 0.9f);
+        statsRect.anchorMax = new Vector2(0.9f, 0.98f);
+        
+        Image statsBg = statsPanel.AddComponent<Image>();
+        statsBg.color = new Color(0, 0, 0, 0.8f);
+        
+        HorizontalLayoutGroup statsLayout = statsPanel.AddComponent<HorizontalLayoutGroup>();
+        statsLayout.spacing = 30;
+        statsLayout.padding = new RectOffset(20, 20, 5, 5);
+        statsLayout.childAlignment = TextAnchor.MiddleCenter;
+        
+        // Copy stats from GameManager if they exist
+        GameManager gm = GameManager.Instance;
+        if (gm != null)
+        {
+            // Hide original stats
+            if (gm.profitText != null) gm.profitText.gameObject.SetActive(false);
+            if (gm.relText != null) gm.relText.gameObject.SetActive(false);
+            if (gm.suspText != null) gm.suspText.gameObject.SetActive(false);
+            
+            // Create new stat displays
+            CreateStatDisplay("Profit", statsPanel.transform, gm.profitText);
+            CreateStatDisplay("Relations", statsPanel.transform, gm.relText);
+            CreateStatDisplay("Suspicion", statsPanel.transform, gm.suspText);
+        }
+    }
+    
+    void CreateStatDisplay(string label, Transform parent, TextMeshProUGUI originalText)
+    {
+        GameObject statObj = new GameObject($"Stat_{label}");
+        statObj.transform.SetParent(parent, false);
+        
+        TextMeshProUGUI text = statObj.AddComponent<TextMeshProUGUI>();
+        text.fontSize = 22;
+        text.color = Color.white;
+        text.alignment = TextAlignmentOptions.Center;
+        
+        // Copy text from original if it exists
+        if (originalText != null)
+        {
+            text.text = originalText.text;
+            text.color = originalText.color;
+            
+            // Redirect GameManager reference to our new text
+            if (label.Contains("Profit")) GameManager.Instance.profitText = text;
+            else if (label.Contains("Relations")) GameManager.Instance.relText = text;
+            else if (label.Contains("Suspicion")) GameManager.Instance.suspText = text;
+        }
+        
+        LayoutElement layout = statObj.AddComponent<LayoutElement>();
+        layout.flexibleWidth = 1;
+        layout.preferredHeight = 30;
     }
     
     void HideOriginalUI()
@@ -210,6 +324,13 @@ public class SimpleUIOverride : MonoBehaviour
                 {
                     newDialogueText.text = dialogueManager.bodyLabel.text;
                     if (firstUpdate) Debug.Log($"SimpleUIOverride: Set text (length: {dialogueManager.bodyLabel.text.Length})");
+                    
+                    // Reset scroll position to top when text changes
+                    if (dialogueScrollRect != null)
+                    {
+                        Canvas.ForceUpdateCanvases();
+                        dialogueScrollRect.verticalNormalizedPosition = 1f;
+                    }
                 }
             }
             
