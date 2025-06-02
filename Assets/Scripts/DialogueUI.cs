@@ -79,6 +79,8 @@ public class DialogueUI : MonoBehaviour
     
     void CreateUIElements()
     {
+        var layerManager = UILayerManager.Instance;
+        
         // Create background layer
         if (backgroundImage == null)
         {
@@ -92,9 +94,11 @@ public class DialogueUI : MonoBehaviour
             bgRect.anchorMax = Vector2.one;
             bgRect.sizeDelta = Vector2.zero;
             
+            layerManager.SetUILayer(bgObj, UILayerManager.UILayer.Background);
+            
             // Add overlay for better text readability
             GameObject overlayObj = new GameObject("BackgroundOverlay");
-            overlayObj.transform.SetParent(bgObj.transform, false);
+            overlayObj.transform.SetParent(transform, false);
             backgroundOverlay = overlayObj.AddComponent<Image>();
             backgroundOverlay.color = new Color(0, 0, 0, 0.3f);
             
@@ -102,6 +106,8 @@ public class DialogueUI : MonoBehaviour
             overlayRect.anchorMin = Vector2.zero;
             overlayRect.anchorMax = Vector2.one;
             overlayRect.sizeDelta = Vector2.zero;
+            
+            layerManager.SetUILayer(overlayObj, UILayerManager.UILayer.BackgroundOverlay);
         }
         
         // Create character panel
@@ -119,6 +125,8 @@ public class DialogueUI : MonoBehaviour
             // Create character images
             CreateCharacterImage(ref leftCharacterImage, "LeftCharacter", new Vector2(0.15f, 0.5f));
             CreateCharacterImage(ref rightCharacterImage, "RightCharacter", new Vector2(0.85f, 0.5f));
+            
+            layerManager.SetUILayer(charPanelObj, UILayerManager.UILayer.Characters);
         }
         
         // Create dialogue panel with modern design
@@ -208,6 +216,8 @@ public class DialogueUI : MonoBehaviour
             
             dialogueScrollRect.content = textContentRect;
             dialogueScrollRect.viewport = viewportRect;
+            
+            layerManager.SetUILayer(dialogueObj, UILayerManager.UILayer.DialogueBox);
         }
         
         // Create stats panel
@@ -233,7 +243,12 @@ public class DialogueUI : MonoBehaviour
             hlg.childControlHeight = true;
             hlg.childControlWidth = false;
             hlg.childForceExpandWidth = true;
+            
+            layerManager.SetUILayer(statsObj, UILayerManager.UILayer.StatsPanel);
         }
+        
+        // Organize hierarchy at the end
+        layerManager.OrganizeUIHierarchy(transform);
     }
     
     void CreateCharacterImage(ref Image characterImage, string name, Vector2 anchorPos)
