@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UI; // Required for ScrollRect, LayoutRebuilder if you add scrolling
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
@@ -12,6 +12,7 @@ public class DialogueManager : MonoBehaviour
     public Image bgImage;
     public Image charLeftImage;
     public Image charRightImage;     // Walt remains here
+    public ScrollRect bodyLabelScrollRect; // Assign if you implement scrolling for bodyLabel
 
     [Header("Resources")]
     public string backgroundsPath = "Sprites/Backgrounds/";
@@ -40,29 +41,66 @@ public class DialogueManager : MonoBehaviour
     /* ────── Update ────── */
     void Update()
     {
-        if (nodes == null) return;
+        if (nodes == null || currentOpts == null || currentOpts.Count == 0) return; // Added check for currentOpts
 
-        if (Input.GetKeyDown(KeyCode.UpArrow)) optionIdx = (optionIdx - 1 + currentOpts.Count) % currentOpts.Count;
-        if (Input.GetKeyDown(KeyCode.DownArrow)) optionIdx = (optionIdx + 1) % currentOpts.Count;
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            optionIdx = (optionIdx - 1 + currentOpts.Count) % currentOpts.Count;
+            AudioManager.Instance?.PlayUINavigationSound(); // Play navigation sound
+            Redraw(); // Redraw to show selection
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            optionIdx = (optionIdx + 1) % currentOpts.Count;
+            AudioManager.Instance?.PlayUINavigationSound(); // Play navigation sound
+            Redraw(); // Redraw to show selection
+        }
 
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) ||
-            Input.GetKeyDown(KeyCode.Alpha1 + optionIdx))
-            OnOptionSelected(optionIdx);
-
-        // Re-draw only when arrow keys pressed (keeps perf fine)
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
-            Redraw();
+        // Check if optionIdx is valid before using it for Alpha keys
+        if (optionIdx >= 0 && optionIdx < currentOpts.Count)
+        {
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) ||
+                Input.GetKeyDown(KeyCode.Alpha1 + optionIdx)) // Make sure Alpha1 + optionIdx is valid
+            {
+                OnOptionSelected(optionIdx);
+            }
+        }
+        // Fallback for Return/Space if Alpha key was out of bounds (e.g. if currentOpts changed rapidly)
+        else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
+        {
+            // Potentially select the first option or handle error, for now, let's assume optionIdx gets corrected
+            // Or, if currentOpts is not empty, select the current (possibly wrapped) optionIdx
+            if (currentOpts.Count > 0)
+            {
+                OnOptionSelected(optionIdx % currentOpts.Count);
+            }
+        }
     }
 
     /* ────── Drawing helpers ────── */
     void LoadWaltPortrait()
     {
+        if (charRightImage == null) { Debug.LogError("charRightImage is not assigned!"); return; }
         Sprite w = Resources.Load<Sprite>(charactersPath + waltSpriteName);
-        if (charRightImage) { charRightImage.sprite = w; charRightImage.enabled = w; }
+        if (w != null)
+        {
+            charRightImage.sprite = w;
+            charRightImage.enabled = true;
+        }
+        else
+        {
+            charRightImage.enabled = false;
+            Debug.LogWarning($"Failed to load Walt portrait: {waltSpriteName}");
+        }
     }
 
     void ShowNode()
     {
+        if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count)
+        {
+            Debug.LogError("ShowNode: Invalid node data or index.");
+            return;
+        }
         showingCard = false;
         optionIdx = 0;
         var n = nodes[nodeIdx];
@@ -71,6 +109,11 @@ public class DialogueManager : MonoBehaviour
 
     void ShowSideEvent(SideEvent ev)
     {
+        if (ev == null)
+        {
+            Debug.LogError("ShowSideEvent: SideEvent is null.");
+            return;
+        }
         showingCard = true;
         optionIdx = 0;
         DrawScreen(ev.body, ev.background, ev.charLeft, ev.options, true);
@@ -78,10 +121,24 @@ public class DialogueManager : MonoBehaviour
 
     void Redraw()
     {
+        // Ensure currentOpts is not null and has items before redrawing
+        if (currentOpts == null || currentOpts.Count == 0)
+        {
+            // It's possible we are in a state where there are no options (e.g. end of dialogue before scene change)
+            // Or if currentCard/nodes[nodeIdx] is somehow invalid at this point.
+            // For now, let's prevent error if currentOpts is bad.
+            Debug.LogWarning("Redraw called with no current options available.");
+            return;
+        }
+
         if (showingCard)
+        {
+            if (currentCard == null) { Debug.LogError("Redraw: currentCard is null while showingCard is true."); return; }
             DrawScreen(currentCard.body, currentCard.background, currentCard.charLeft, currentOpts, true);
+        }
         else
         {
+            if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count) { Debug.LogError("Redraw: Invalid node data or index while not showing card."); return; }
             var n = nodes[nodeIdx];
             DrawScreen(n.body, n.background, n.charLeft, currentOpts, false);
         }
@@ -89,21 +146,44 @@ public class DialogueManager : MonoBehaviour
 
     void DrawScreen(string body, string bg, string charL, List<DialogueOption> opts, bool isEvent)
     {
-        currentOpts = opts;
+        // Ensure UI elements are assigned
+        if (bodyLabel == null) { Debug.LogError("bodyLabel is not assigned in DialogueManager!"); return; }
+        if (bgImage == null) { Debug.LogError("bgImage is not assigned in DialogueManager!"); } // Can be optional
+        if (charLeftImage == null) { Debug.LogError("charLeftImage is not assigned in DialogueManager!"); } // Can be optional
 
-        if (bgImage && !string.IsNullOrEmpty(bg))
+
+        currentOpts = opts;
+        if (currentOpts == null)
+        {
+            Debug.LogError("DrawScreen called with null options list.");
+            currentOpts = new List<DialogueOption>(); // Prevent further null errors
+        }
+        // Ensure optionIdx is valid for the new options
+        if (optionIdx >= currentOpts.Count && currentOpts.Count > 0)
+        {
+            optionIdx = currentOpts.Count - 1;
+        }
+        else if (currentOpts.Count == 0)
+        {
+            optionIdx = 0; // Or handle no options state
+        }
+
+
+        if (bgImage != null && !string.IsNullOrEmpty(bg))
         {
             Sprite s = Resources.Load<Sprite>(backgroundsPath + bg);
             if (s) bgImage.sprite = s;
+            else Debug.LogWarning($"Background sprite not found: {bg}");
         }
 
-        if (charLeftImage)
+        if (charLeftImage != null)
         {
             if (!string.IsNullOrEmpty(charL))
             {
                 Sprite p = Resources.Load<Sprite>(charactersPath + charL);
                 charLeftImage.sprite = p;
                 charLeftImage.enabled = (p != null);
+                if (p == null) Debug.LogWarning($"Character sprite not found: {charL}");
             }
             else charLeftImage.enabled = false;
         }
@@ -112,33 +192,68 @@ public class DialogueManager : MonoBehaviour
         if (isEvent) sb.AppendLine("<b>[EVENT]</b>\n");
 
         sb.AppendLine(body).AppendLine();
-        for (int i = 0; i < opts.Count; i++)
+
+        if (opts != null)
         {
-            DialogueOption o = opts[i];
-            string cursor = (i == optionIdx) ? "<color=#FFD700>> </color>" : "  ";
-            sb.Append(cursor).Append(i + 1).Append(". ").Append(o.text).Append(" [")
-              .Append(ColorNum(o.profit)).Append("|")
-              .Append(ColorNum(o.relationships)).Append("|")
-              .Append(ColorNum(o.suspicion)).Append("]\n");
+            for (int i = 0; i < opts.Count; i++)
+            {
+                DialogueOption o = opts[i];
+                if (o == null) continue; // Skip null options
+                string cursor = (i == optionIdx) ? "<color=#FFD700>> </color>" : "  "; // Non-breaking space for alignment
+                sb.Append(cursor).Append(i + 1).Append(". ").Append(o.text).Append(" [")
+                  .Append(ColorNum(o.profit)).Append("|")
+                  .Append(ColorNum(o.relationships)).Append("|")
+                  .Append(ColorNum(o.suspicion)).Append("]\n");
+            }
         }
 
+
         bodyLabel.text = sb.ToString().TrimEnd('\n');   // avoid extra blank
+
+        // Reset scroll position if ScrollRect is assigned
+        if (bodyLabelScrollRect != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(bodyLabelScrollRect.content);
+            bodyLabelScrollRect.verticalNormalizedPosition = 1f; // 1 is top, 0 is bottom
+        }
     }
 
     string ColorNum(int n)
     {
         if (n == 0) return "<color=#CCCCCC>0</color>";
-        string c = n > 0 ? "#4CAF50" : "#E53935";
+        string c = n > 0 ? "#4CAF50" : "#E53935"; // Green for positive, Red for negative
         return $"<color={c}>{(n > 0 ? "+" : "")}{n}</color>";
     }
 
     /* ────── Choice handler ────── */
     void OnOptionSelected(int pick)
     {
-        var opt = currentOpts[pick];
-        GameManager.Instance.ApplyChoice(opt.profit, opt.relationships, opt.suspicion);
+        if (currentOpts == null || pick < 0 || pick >= currentOpts.Count)
+        {
+            Debug.LogError($"OnOptionSelected: Invalid pick index {pick} or currentOpts is null/empty.");
+            return;
+        }
 
-        if (showingCard) { showingCard = false; ShowNode(); return; }
+        AudioManager.Instance?.PlayUISelectSound(); // Play selection sound
+
+        var opt = currentOpts[pick];
+        if (opt == null)
+        {
+            Debug.LogError($"OnOptionSelected: Option at index {pick} is null.");
+            return;
+        }
+
+        GameManager.Instance?.ApplyChoice(opt.profit, opt.relationships, opt.suspicion);
+
+        if (showingCard)
+        {
+            showingCard = false;
+            ShowNode();
+            return;
+        }
+
+        // Attempt to trigger a side event *after* processing the main choice consequences,
+        // but *before* moving to the next main node.
         if (TrySideEvent()) return;
 
         if (opt.nextNode >= 0 && opt.nextNode < nodes.Count)
@@ -146,30 +261,59 @@ public class DialogueManager : MonoBehaviour
             nodeIdx = opt.nextNode;
             ShowNode();
         }
-        else SceneManager.LoadScene("EndScene");
+        else
+        {
+            // Assuming -1 (or any negative/out-of-bounds value) means end story
+            SceneManager.LoadScene("EndScene");
+        }
     }
 
     /* ────── Deck logic ────── */
-    SideEvent currentCard;
+    SideEvent currentCard; // Store the current side event card being shown
+
+    // Revised TrySideEvent logic
     bool TrySideEvent()
     {
         if (deck == null || deck.Count == 0) return false;
-        if (rng.NextDouble() > 0.35) return false;      // 35 % chance
+        if (rng.NextDouble() > 0.35) return false; // 35% chance to even attempt a side event
 
-        int start = rng.Next(deck.Count);
-        for (int i = 0; i < deck.Count; i++)
+        List<SideEvent> eligibleEvents = new List<SideEvent>();
+        for (int i = 0; i < deck.Count; i++) // Iterate using index
         {
-            SideEvent ev = deck[(start + i) % deck.Count];
+            SideEvent currentEventInDeck = deck[i];
+            if (currentEventInDeck == null) continue;
 
-            if (ev.tag == "rare" && rng.NextDouble() > 0.1) continue;   // 10 % for rare
-            if (GameManager.Instance.Suspicion >= ev.minSuspicion && nodeIdx <= ev.maxScene)
+            // Check general eligibility first
+            if (GameManager.Instance != null &&
+                GameManager.Instance.Suspicion >= currentEventInDeck.minSuspicion &&
+                nodeIdx <= currentEventInDeck.maxScene) // nodeIdx refers to the current main story progression
             {
-                deck.Remove(ev);
-                currentCard = ev;
-                ShowSideEvent(ev);
-                return true;
+                // If it's a rare event, apply the 10% chance of it being considered
+                if (currentEventInDeck.tag == "rare")
+                {
+                    if (rng.NextDouble() <= 0.1) // 10% chance to pass this check for rare events
+                    {
+                        eligibleEvents.Add(currentEventInDeck);
+                    }
+                }
+                else // Not a rare event
+                {
+                    eligibleEvents.Add(currentEventInDeck);
+                }
             }
         }
+
+        if (eligibleEvents.Count > 0)
+        {
+            // Pick a random event from the eligible ones
+            currentCard = eligibleEvents[rng.Next(eligibleEvents.Count)];
+            deck.Remove(currentCard); // Remove from the original deck
+
+            // Debug.Log($"Side Event Triggered: {currentCard.body}");
+            ShowSideEvent(currentCard);
+            return true;
+        }
+
         return false;
     }
 }
