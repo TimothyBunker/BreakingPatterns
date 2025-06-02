@@ -59,6 +59,15 @@ public class GameManager : MonoBehaviour
             uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
         if (uiIntegration == null)
             uiIntegration = FindFirstObjectByType<DialogueUIIntegration>() ?? new GameObject("DialogueUIIntegration").AddComponent<DialogueUIIntegration>();
+            
+        // Add UI debugger for development
+        #if UNITY_EDITOR
+        var debugger = FindFirstObjectByType<UILayerDebugger>();
+        if (debugger == null)
+        {
+            new GameObject("UILayerDebugger").AddComponent<UILayerDebugger>();
+        }
+        #endif
 
         UpdateUI(); // Update UI with initial values
     }
