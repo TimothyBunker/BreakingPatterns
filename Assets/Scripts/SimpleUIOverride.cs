@@ -17,6 +17,9 @@ public class SimpleUIOverride : MonoBehaviour
     [SerializeField] private RectTransform newDialoguePanel;
     [SerializeField] private ScrollRect dialogueScrollRect;
     
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    
     void Start()
     {
         StartCoroutine(SetupOverride());
@@ -50,6 +53,9 @@ public class SimpleUIOverride : MonoBehaviour
             canvasObj.AddComponent<GraphicRaycaster>();
         }
         
+        // Setup audio
+        SetupAudio();
+        
         // Create our UI elements
         CreateSimpleUI();
         
@@ -58,6 +64,83 @@ public class SimpleUIOverride : MonoBehaviour
         
         // Start intercepting
         StartCoroutine(InterceptAndDisplay());
+        
+        // Start scroll controls
+        StartCoroutine(HandleScrollInput());
+    }
+    
+    void SetupAudio()
+    {
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0.5f;
+    }
+    
+    IEnumerator HandleScrollInput()
+    {
+        while (true)
+        {
+            yield return null;
+            
+            if (dialogueScrollRect != null)
+            {
+                // Mouse wheel scrolling
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                if (scroll != 0)
+                {
+                    float scrollSpeed = 0.1f;
+                    dialogueScrollRect.verticalNormalizedPosition = 
+                        Mathf.Clamp01(dialogueScrollRect.verticalNormalizedPosition + scroll * scrollSpeed);
+                    
+                    // Play scroll sound
+                    PlayUISound("click-sound-help-other");
+                }
+                
+                // Keyboard scrolling (Page Up/Down or W/S)
+                if (Input.GetKeyDown(KeyCode.PageDown) || Input.GetKeyDown(KeyCode.S))
+                {
+                    dialogueScrollRect.verticalNormalizedPosition = 
+                        Mathf.Clamp01(dialogueScrollRect.verticalNormalizedPosition - 0.2f);
+                    PlayUISound("click-sound-help-other");
+                }
+                else if (Input.GetKeyDown(KeyCode.PageUp) || Input.GetKeyDown(KeyCode.W))
+                {
+                    dialogueScrollRect.verticalNormalizedPosition = 
+                        Mathf.Clamp01(dialogueScrollRect.verticalNormalizedPosition + 0.2f);
+                    PlayUISound("click-sound-help-other");
+                }
+            }
+        }
+    }
+    
+    void PlayUISound(string soundName)
+    {
+        // Try to use AudioManager first
+        var audioManager = AudioManager.Instance;
+        if (audioManager != null)
+        {
+            if (soundName.Contains("click") || soundName.Contains("help"))
+            {
+                audioManager.PlayUINavigationSound();
+                return;
+            }
+        }
+        
+        // Fallback to our own audio source
+        if (audioSource == null) return;
+        
+        AudioClip clip = Resources.Load<AudioClip>($"Audio/{soundName}");
+        if (clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+        else
+        {
+            Debug.LogWarning($"SimpleUIOverride: Could not find audio clip '{soundName}'");
+        }
     }
     
     void CreateSimpleUI()
@@ -101,31 +184,31 @@ public class SimpleUIOverride : MonoBehaviour
         rightPanelRect.anchorMin = new Vector2(0.75f, 0); // Full height, further right
         rightPanelRect.anchorMax = new Vector2(1f, 1f); // Skinnier (75-100%)
         
-        // Create left character (matching panel size)
+        // Create left character (positioned lower)
         leftCharObj = new GameObject("NewLeftCharacter");
         leftCharObj.transform.SetParent(mainCanvas.transform, false);
         newLeftCharacter = leftCharObj.AddComponent<Image>();
         newLeftCharacter.preserveAspect = true;
         
         RectTransform leftRect = leftCharObj.GetComponent<RectTransform>();
-        leftRect.anchorMin = new Vector2(0.02f, 0.1f); // Slightly inside panel
-        leftRect.anchorMax = new Vector2(0.23f, 0.9f); // Full height, skinnier
+        leftRect.anchorMin = new Vector2(0.02f, 0f); // Start at bottom
+        leftRect.anchorMax = new Vector2(0.23f, 0.7f); // Lower position (0-70% height)
         leftRect.anchoredPosition = Vector2.zero;
         leftRect.sizeDelta = Vector2.zero;
         
-        // Create right character (matching panel size, further right)
+        // Create right character (positioned lower)
         rightCharObj = new GameObject("NewRightCharacter");
         rightCharObj.transform.SetParent(mainCanvas.transform, false);
         newRightCharacter = rightCharObj.AddComponent<Image>();
         newRightCharacter.preserveAspect = true;
         
         RectTransform rightRect = rightCharObj.GetComponent<RectTransform>();
-        rightRect.anchorMin = new Vector2(0.77f, 0.1f); // Further right, slightly inside panel
-        rightRect.anchorMax = new Vector2(0.98f, 0.9f); // Full height, skinnier
+        rightRect.anchorMin = new Vector2(0.77f, 0f); // Start at bottom
+        rightRect.anchorMax = new Vector2(0.98f, 0.7f); // Lower position (0-70% height)
         rightRect.anchoredPosition = Vector2.zero;
         rightRect.sizeDelta = Vector2.zero;
         
-        // Create dialogue panel with SIMPLE text display (no scrolling for now)
+        // Create dialogue panel with scrollable text
         dialogueObj = new GameObject("NewDialoguePanel");
         dialogueObj.transform.SetParent(mainCanvas.transform, false);
         newDialoguePanel = dialogueObj.AddComponent<RectTransform>();
@@ -134,29 +217,114 @@ public class SimpleUIOverride : MonoBehaviour
         panelBg.color = new Color(0, 0, 0, 0.9f);
         
         newDialoguePanel.anchorMin = new Vector2(0.26f, 0); // Start after left panel
-        newDialoguePanel.anchorMax = new Vector2(0.74f, 0.35f); // End before right panel
+        newDialoguePanel.anchorMax = new Vector2(0.74f, 0.4f); // End before right panel, taller
         newDialoguePanel.offsetMin = new Vector2(0, 20);
         newDialoguePanel.offsetMax = new Vector2(0, 0);
         
-        // Create text directly (simplified approach)
-        GameObject textObj = new GameObject("DialogueText");
-        textObj.transform.SetParent(dialogueObj.transform, false);
-        newDialogueText = textObj.AddComponent<TextMeshProUGUI>();
+        // Create scroll view
+        GameObject scrollViewObj = new GameObject("DialogueScrollView");
+        scrollViewObj.transform.SetParent(dialogueObj.transform, false);
+        dialogueScrollRect = scrollViewObj.AddComponent<ScrollRect>();
         
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(20, 20);
-        textRect.offsetMax = new Vector2(-20, -20);
+        RectTransform scrollViewRect = scrollViewObj.GetComponent<RectTransform>();
+        scrollViewRect.anchorMin = Vector2.zero;
+        scrollViewRect.anchorMax = Vector2.one;
+        scrollViewRect.offsetMin = new Vector2(10, 10);
+        scrollViewRect.offsetMax = new Vector2(-10, -10);
         
-        // Configure text
+        // Create viewport
+        GameObject viewportObj = new GameObject("Viewport");
+        viewportObj.transform.SetParent(scrollViewObj.transform, false);
+        RectTransform viewportRect = viewportObj.AddComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = Vector2.zero;
+        viewportRect.offsetMax = Vector2.zero;
+        
+        Image viewportImage = viewportObj.AddComponent<Image>();
+        viewportImage.color = Color.clear;
+        Mask viewportMask = viewportObj.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = false;
+        
+        // Create content container
+        GameObject contentObj = new GameObject("Content");
+        contentObj.transform.SetParent(viewportObj.transform, false);
+        RectTransform contentRect = contentObj.AddComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0, 1);
+        contentRect.anchorMax = new Vector2(1, 1);
+        contentRect.pivot = new Vector2(0.5f, 1);
+        contentRect.anchoredPosition = Vector2.zero;
+        
+        // Create text
+        newDialogueText = contentObj.AddComponent<TextMeshProUGUI>();
         newDialogueText.fontSize = 18;
         newDialogueText.color = Color.white;
         newDialogueText.alignment = TextAlignmentOptions.TopLeft;
-        newDialogueText.overflowMode = TextOverflowModes.Ellipsis;
-        newDialogueText.text = "TEXT TEST - If you can see this, text is working!";
+        newDialogueText.text = "TEXT TEST - If you can see this, scrollable text is working!";
         
-        Debug.Log("SimpleUIOverride: Created simple text display");
+        // Add content size fitter
+        ContentSizeFitter fitter = contentObj.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
+        // Configure scroll rect
+        dialogueScrollRect.content = contentRect;
+        dialogueScrollRect.viewport = viewportRect;
+        dialogueScrollRect.vertical = true;
+        dialogueScrollRect.horizontal = false;
+        dialogueScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        
+        // Add scrollbar for visual feedback
+        GameObject scrollbarObj = new GameObject("Scrollbar");
+        scrollbarObj.transform.SetParent(dialogueObj.transform, false);
+        
+        RectTransform scrollbarRect = scrollbarObj.AddComponent<RectTransform>();
+        scrollbarRect.anchorMin = new Vector2(1, 0);
+        scrollbarRect.anchorMax = new Vector2(1, 1);
+        scrollbarRect.offsetMin = new Vector2(-20, 10);
+        scrollbarRect.offsetMax = new Vector2(-5, -10);
+        
+        Scrollbar scrollbar = scrollbarObj.AddComponent<Scrollbar>();
+        scrollbar.direction = Scrollbar.Direction.BottomToTop;
+        
+        Image scrollbarBg = scrollbarObj.AddComponent<Image>();
+        scrollbarBg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        
+        // Create scrollbar handle
+        GameObject handleObj = new GameObject("Handle");
+        handleObj.transform.SetParent(scrollbarObj.transform, false);
+        
+        RectTransform handleRect = handleObj.AddComponent<RectTransform>();
+        handleRect.anchorMin = Vector2.zero;
+        handleRect.anchorMax = Vector2.one;
+        handleRect.offsetMin = Vector2.zero;
+        handleRect.offsetMax = Vector2.zero;
+        
+        Image handleImage = handleObj.AddComponent<Image>();
+        handleImage.color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+        
+        scrollbar.handleRect = handleRect;
+        scrollbar.targetGraphic = handleImage;
+        
+        // Connect scrollbar to scroll rect
+        dialogueScrollRect.verticalScrollbar = scrollbar;
+        
+        // Add scroll hint
+        GameObject hintObj = new GameObject("ScrollHint");
+        hintObj.transform.SetParent(dialogueObj.transform, false);
+        
+        RectTransform hintRect = hintObj.AddComponent<RectTransform>();
+        hintRect.anchorMin = new Vector2(0, 0);
+        hintRect.anchorMax = new Vector2(1, 0);
+        hintRect.offsetMin = new Vector2(0, 0);
+        hintRect.offsetMax = new Vector2(0, 20);
+        
+        TextMeshProUGUI hintText = hintObj.AddComponent<TextMeshProUGUI>();
+        hintText.text = "📜 Scroll: Mouse Wheel, W/S, or Page Up/Down";
+        hintText.fontSize = 12;
+        hintText.color = new Color(1, 1, 1, 0.6f);
+        hintText.alignment = TextAlignmentOptions.Center;
+        
+        Debug.Log("SimpleUIOverride: Created scrollable text display with scrollbar and hint");
         
         // Create stats panel at top
         statsPanel = new GameObject("NewStatsPanel");
@@ -315,6 +483,13 @@ public class SimpleUIOverride : MonoBehaviour
                     {
                         newDialogueText.text = dialogueManager.bodyLabel.text;
                         Debug.Log($"SimpleUIOverride: Updated text to '{newDialogueText.text}' (length: {dialogueManager.bodyLabel.text.Length})");
+                        
+                        // Reset scroll to top when text changes
+                        if (dialogueScrollRect != null)
+                        {
+                            Canvas.ForceUpdateCanvases();
+                            dialogueScrollRect.verticalNormalizedPosition = 1f;
+                        }
                         
                         // Force canvas update to ensure text displays
                         Canvas.ForceUpdateCanvases();
