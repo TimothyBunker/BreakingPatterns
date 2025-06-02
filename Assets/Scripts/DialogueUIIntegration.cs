@@ -24,12 +24,29 @@ public class DialogueUIIntegration : MonoBehaviour
         {
             // Create modern UI if it doesn't exist
             GameObject uiObj = new GameObject("ModernDialogueUI");
+            Canvas canvas = FindFirstObjectByType<Canvas>();
+            if (canvas != null)
+                uiObj.transform.SetParent(canvas.transform, false);
             modernUI = uiObj.AddComponent<DialogueUI>();
         }
         
         if (overrideExistingUI && dialogueManager != null)
         {
             OverrideDialogueManager();
+        }
+        
+        // Force initial update
+        StartCoroutine(ForceInitialUpdate());
+    }
+    
+    System.Collections.IEnumerator ForceInitialUpdate()
+    {
+        yield return new WaitForSeconds(0.1f);
+        
+        // Try to get initial state from DialogueManager
+        if (dialogueManager != null)
+        {
+            UpdateVisualsFromDialogueManager();
         }
     }
     
@@ -72,6 +89,8 @@ public class DialogueUIIntegration : MonoBehaviour
     
     void ParseAndDisplayModern(string fullText)
     {
+        Debug.Log($"DialogueUIIntegration: Parsing text with length {fullText.Length}");
+        
         // Parse the dialogue text
         string[] lines = fullText.Split('\n');
         bool isEvent = false;

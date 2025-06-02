@@ -261,10 +261,12 @@ public class DialogueUI : MonoBehaviour
         characterImage.color = Color.clear;
         
         RectTransform charRect = charObj.GetComponent<RectTransform>();
-        charRect.anchorMin = anchorPos;
-        charRect.anchorMax = anchorPos;
-        charRect.sizeDelta = characterSize;
+        // Fix positioning - use proper anchors
+        charRect.anchorMin = new Vector2(anchorPos.x - 0.1f, 0);
+        charRect.anchorMax = new Vector2(anchorPos.x + 0.1f, 1);
         charRect.pivot = new Vector2(0.5f, 0.5f);
+        charRect.anchoredPosition = Vector2.zero;
+        charRect.sizeDelta = new Vector2(0, 0); // Use anchor-based sizing
         
         // Add subtle shadow for depth
         Shadow shadow = charObj.AddComponent<Shadow>();

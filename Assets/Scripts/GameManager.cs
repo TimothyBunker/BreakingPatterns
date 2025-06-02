@@ -68,8 +68,28 @@ public class GameManager : MonoBehaviour
             new GameObject("UILayerDebugger").AddComponent<UILayerDebugger>();
         }
         #endif
+        
+        // Add simple UI override as a fallback
+        StartCoroutine(AddSimpleOverride());
 
         UpdateUI(); // Update UI with initial values
+    }
+    
+    System.Collections.IEnumerator AddSimpleOverride()
+    {
+        yield return new WaitForSeconds(0.5f);
+        
+        // Check if UI is working
+        var dialogueManager = FindFirstObjectByType<DialogueManager>();
+        if (dialogueManager != null && dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.gameObject.activeSelf)
+        {
+            // Original UI is still active, add simple override
+            var simpleOverride = FindFirstObjectByType<SimpleUIOverride>();
+            if (simpleOverride == null)
+            {
+                new GameObject("SimpleUIOverride").AddComponent<SimpleUIOverride>();
+            }
+        }
     }
 
 
