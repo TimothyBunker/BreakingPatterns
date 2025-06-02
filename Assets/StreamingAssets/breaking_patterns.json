@@ -46,7 +46,7 @@
     },
     {
       "body": "You meet Tuco — unstable, but powerful.\n\nTuco: “You got stones, Heisenberg. Let’s make money.”\nJesse: “This dude is psycho.”",
-      "background": "bb_tucosair",
+      "background": "bb_tucoslair",
       "charLeft": "Tuco_front",
       "options": [
         { "text": "Work with Tuco.",         "profit": 30, "relationships": -20, "suspicion": 20, "nextNode": 6 },
