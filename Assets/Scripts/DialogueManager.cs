@@ -164,8 +164,12 @@ public class DialogueManager : MonoBehaviour
             if (opt == null) continue;
             
             // Check relationship requirements
-            bool meetsReqs = GameManager.Instance.Relationships >= opt.minRelationship &&
+            bool meetsReqs = true;
+            if (GameManager.Instance != null)
+            {
+                meetsReqs = GameManager.Instance.Relationships >= opt.minRelationship &&
                            GameManager.Instance.Relationships <= opt.maxRelationship;
+            }
                            
             // Add visible options or hidden options that meet requirements
             if (!opt.isHidden || meetsReqs)

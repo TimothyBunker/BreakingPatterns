@@ -10,7 +10,7 @@ public class DialogueJsonLoader : MonoBehaviour
 
     public DialogueManager targetManager;
 
-    void Awake()
+    void Start()
     {
         /* -------- main storyline -------- */
         string mainPath = Path.Combine(Application.streamingAssetsPath, mainFileName);
