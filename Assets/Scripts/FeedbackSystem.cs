@@ -31,13 +31,13 @@ public class FeedbackSystem : MonoBehaviour
     
     private Camera mainCamera;
     private Vector3 originalCameraPos;
-    private AudioiManager audioManager;
+    private AudioManager audioManager;
     
     void Start()
     {
         mainCamera = Camera.main;
         originalCameraPos = mainCamera.transform.position;
-        audioManager = FindObjectOfType<AudioiManager>();
+        audioManager = FindFirstObjectByType<AudioManager>();
         
         if (screenFlashImage == null)
         {
@@ -185,7 +185,10 @@ public class FeedbackSystem : MonoBehaviour
         // Play special sound
         if (audioManager != null)
         {
-            audioManager.PlayChoiceSound(type == CriticalType.Success ? 0 : 1);
+            if (type == CriticalType.Success)
+                audioManager.PlayPositiveStatSound();
+            else
+                audioManager.PlayNegativeStatSound();
         }
         
         // Show critical text
