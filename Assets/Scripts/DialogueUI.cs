@@ -202,7 +202,7 @@ public class DialogueUI : MonoBehaviour
             // Create content for scroll
             GameObject textContentObj = new GameObject("TextContent");
             textContentObj.transform.SetParent(viewportObj.transform, false);
-            RectTransform textContentRect = textContentObj.GetComponent<RectTransform>();
+            RectTransform textContentRect = textContentObj.AddComponent<RectTransform>();
             textContentRect.anchorMin = new Vector2(0, 1);
             textContentRect.anchorMax = new Vector2(1, 1);
             textContentRect.pivot = new Vector2(0.5f, 1);

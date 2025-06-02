@@ -55,10 +55,12 @@ public class GameManager : MonoBehaviour
             statModifier = GetComponent<StatModifier>() ?? gameObject.AddComponent<StatModifier>();
         if (feedbackSystem == null)
             feedbackSystem = GetComponent<FeedbackSystem>() ?? gameObject.AddComponent<FeedbackSystem>();
-        if (uiManager == null)
-            uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
-        if (uiIntegration == null)
-            uiIntegration = FindFirstObjectByType<DialogueUIIntegration>() ?? new GameObject("DialogueUIIntegration").AddComponent<DialogueUIIntegration>();
+        
+        // Disable the complex UI systems for now - just use SimpleUIOverride
+        // if (uiManager == null)
+        //     uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
+        // if (uiIntegration == null)
+        //     uiIntegration = FindFirstObjectByType<DialogueUIIntegration>() ?? new GameObject("DialogueUIIntegration").AddComponent<DialogueUIIntegration>();
             
         // Add UI debugger for development
         #if UNITY_EDITOR
@@ -77,18 +79,14 @@ public class GameManager : MonoBehaviour
     
     System.Collections.IEnumerator AddSimpleOverride()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.1f);
         
-        // Check if UI is working
-        var dialogueManager = FindFirstObjectByType<DialogueManager>();
-        if (dialogueManager != null && dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.gameObject.activeSelf)
+        // Always add simple override as the main UI system
+        var simpleOverride = FindFirstObjectByType<SimpleUIOverride>();
+        if (simpleOverride == null)
         {
-            // Original UI is still active, add simple override
-            var simpleOverride = FindFirstObjectByType<SimpleUIOverride>();
-            if (simpleOverride == null)
-            {
-                new GameObject("SimpleUIOverride").AddComponent<SimpleUIOverride>();
-            }
+            Debug.Log("GameManager: Creating SimpleUIOverride");
+            new GameObject("SimpleUIOverride").AddComponent<SimpleUIOverride>();
         }
     }
 

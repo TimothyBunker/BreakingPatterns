@@ -128,6 +128,8 @@ public class SimpleUIOverride : MonoBehaviour
     
     void HideOriginalUI()
     {
+        Debug.Log("SimpleUIOverride: Hiding original UI elements");
+        
         if (dialogueManager.bodyLabel != null)
             dialogueManager.bodyLabel.gameObject.SetActive(false);
         if (dialogueManager.bgImage != null)
@@ -140,10 +142,21 @@ public class SimpleUIOverride : MonoBehaviour
         // Hide any parent containers
         if (dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.transform.parent != null)
             dialogueManager.bodyLabel.transform.parent.gameObject.SetActive(false);
+            
+        // Also hide any other UI systems that might be conflicting
+        var dialogueUI = FindFirstObjectByType<DialogueUI>();
+        if (dialogueUI != null)
+            dialogueUI.gameObject.SetActive(false);
+            
+        var uiIntegration = FindFirstObjectByType<DialogueUIIntegration>();
+        if (uiIntegration != null)
+            uiIntegration.gameObject.SetActive(false);
     }
     
     IEnumerator InterceptAndDisplay()
     {
+        bool firstUpdate = true;
+        
         while (true)
         {
             yield return null;
@@ -151,16 +164,24 @@ public class SimpleUIOverride : MonoBehaviour
             // Copy background
             if (dialogueManager.bgImage != null && dialogueManager.bgImage.sprite != null)
             {
-                newBackgroundImage.sprite = dialogueManager.bgImage.sprite;
-                newBackgroundImage.color = Color.white;
+                if (newBackgroundImage.sprite != dialogueManager.bgImage.sprite)
+                {
+                    newBackgroundImage.sprite = dialogueManager.bgImage.sprite;
+                    newBackgroundImage.color = Color.white;
+                    if (firstUpdate) Debug.Log($"SimpleUIOverride: Set background to {dialogueManager.bgImage.sprite.name}");
+                }
             }
             
             // Copy characters
             if (dialogueManager.charLeftImage != null && dialogueManager.charLeftImage.sprite != null)
             {
-                newLeftCharacter.sprite = dialogueManager.charLeftImage.sprite;
-                newLeftCharacter.color = Color.white;
-                newLeftCharacter.enabled = true;
+                if (newLeftCharacter.sprite != dialogueManager.charLeftImage.sprite)
+                {
+                    newLeftCharacter.sprite = dialogueManager.charLeftImage.sprite;
+                    newLeftCharacter.color = Color.white;
+                    newLeftCharacter.enabled = true;
+                    if (firstUpdate) Debug.Log($"SimpleUIOverride: Set left character to {dialogueManager.charLeftImage.sprite.name}");
+                }
             }
             else
             {
@@ -169,9 +190,13 @@ public class SimpleUIOverride : MonoBehaviour
             
             if (dialogueManager.charRightImage != null && dialogueManager.charRightImage.sprite != null)
             {
-                newRightCharacter.sprite = dialogueManager.charRightImage.sprite;
-                newRightCharacter.color = Color.white;
-                newRightCharacter.enabled = true;
+                if (newRightCharacter.sprite != dialogueManager.charRightImage.sprite)
+                {
+                    newRightCharacter.sprite = dialogueManager.charRightImage.sprite;
+                    newRightCharacter.color = Color.white;
+                    newRightCharacter.enabled = true;
+                    if (firstUpdate) Debug.Log($"SimpleUIOverride: Set right character to {dialogueManager.charRightImage.sprite.name}");
+                }
             }
             else
             {
@@ -181,8 +206,14 @@ public class SimpleUIOverride : MonoBehaviour
             // Copy text
             if (dialogueManager.bodyLabel != null && !string.IsNullOrEmpty(dialogueManager.bodyLabel.text))
             {
-                newDialogueText.text = dialogueManager.bodyLabel.text;
+                if (newDialogueText.text != dialogueManager.bodyLabel.text)
+                {
+                    newDialogueText.text = dialogueManager.bodyLabel.text;
+                    if (firstUpdate) Debug.Log($"SimpleUIOverride: Set text (length: {dialogueManager.bodyLabel.text.Length})");
+                }
             }
+            
+            firstUpdate = false;
         }
     }
 }
