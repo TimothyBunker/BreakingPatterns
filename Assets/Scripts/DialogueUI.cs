@@ -20,7 +20,8 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private Image leftCharacterImage;
     [SerializeField] private Image rightCharacterImage;
     [SerializeField] private float characterFadeTime = 0.3f;
-    [SerializeField] private Vector2 characterSize = new Vector2(400, 600);
+    [SerializeField] private Vector2 characterSize = new Vector2(500, 700);
+    [SerializeField] private float characterHorizontalOffset = 0.2f; // How far from center (0-0.5)
     
     [Header("Dialogue Panel")]
     [SerializeField] private RectTransform dialoguePanel;
@@ -122,9 +123,9 @@ public class DialogueUI : MonoBehaviour
             characterPanel.anchorMax = new Vector2(1, 0.8f);
             characterPanel.sizeDelta = Vector2.zero;
             
-            // Create character images
-            CreateCharacterImage(ref leftCharacterImage, "LeftCharacter", new Vector2(0.15f, 0.5f));
-            CreateCharacterImage(ref rightCharacterImage, "RightCharacter", new Vector2(0.85f, 0.5f));
+            // Create character images with better positioning
+            CreateCharacterImage(ref leftCharacterImage, "LeftCharacter", new Vector2(characterHorizontalOffset, 0.5f));
+            CreateCharacterImage(ref rightCharacterImage, "RightCharacter", new Vector2(1f - characterHorizontalOffset, 0.5f));
             
             layerManager.SetUILayer(charPanelObj, UILayerManager.UILayer.Characters);
         }
