@@ -108,7 +108,7 @@ public class UIManager : MonoBehaviour
         {
             GameObject dialogueObj = new GameObject("DialogueBox");
             dialogueObj.transform.SetParent(mainCanvas, false);
-            dialogueBox = dialogueObj.GetComponent<RectTransform>();
+            dialogueBox = dialogueObj.AddComponent<RectTransform>();
             
             // Position at bottom of screen with margins
             dialogueBox.anchorMin = new Vector2(0.1f, 0f);
@@ -183,7 +183,7 @@ public class UIManager : MonoBehaviour
         {
             GameObject statsObj = new GameObject("StatsContainer");
             statsObj.transform.SetParent(mainCanvas, false);
-            statsContainer = statsObj.GetComponent<RectTransform>();
+            statsContainer = statsObj.AddComponent<RectTransform>();
             
             // Position at top of screen
             statsContainer.anchorMin = new Vector2(0, 0.9f);
@@ -209,7 +209,7 @@ public class UIManager : MonoBehaviour
         {
             GameObject effectsObj = new GameObject("EffectsContainer");
             effectsObj.transform.SetParent(mainCanvas, false);
-            effectsContainer = effectsObj.GetComponent<RectTransform>();
+            effectsContainer = effectsObj.AddComponent<RectTransform>();
             effectsContainer.anchorMin = Vector2.zero;
             effectsContainer.anchorMax = Vector2.one;
             effectsContainer.sizeDelta = Vector2.zero;

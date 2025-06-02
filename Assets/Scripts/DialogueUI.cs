@@ -109,7 +109,7 @@ public class DialogueUI : MonoBehaviour
         {
             GameObject charPanelObj = new GameObject("CharacterPanel");
             charPanelObj.transform.SetParent(transform, false);
-            characterPanel = charPanelObj.GetComponent<RectTransform>();
+            characterPanel = charPanelObj.AddComponent<RectTransform>();
             
             // Position characters in middle area
             characterPanel.anchorMin = new Vector2(0, 0.3f);
@@ -126,7 +126,7 @@ public class DialogueUI : MonoBehaviour
         {
             GameObject dialogueObj = new GameObject("DialoguePanel");
             dialogueObj.transform.SetParent(transform, false);
-            dialoguePanel = dialogueObj.GetComponent<RectTransform>();
+            dialoguePanel = dialogueObj.AddComponent<RectTransform>();
             
             // Position at bottom with responsive margins
             dialoguePanel.anchorMin = new Vector2(0.05f, 0.05f);
@@ -215,7 +215,7 @@ public class DialogueUI : MonoBehaviour
         {
             GameObject statsObj = new GameObject("StatsPanel");
             statsObj.transform.SetParent(transform, false);
-            statsPanel = statsObj.GetComponent<RectTransform>();
+            statsPanel = statsObj.AddComponent<RectTransform>();
             
             // Position at top
             statsPanel.anchorMin = new Vector2(0.1f, 0.9f);
@@ -308,7 +308,7 @@ public class DialogueUI : MonoBehaviour
     {
         GameObject choiceObj = new GameObject("ChoicePanel");
         choiceObj.transform.SetParent(dialoguePanel, false);
-        choicePanel = choiceObj.GetComponent<RectTransform>();
+        choicePanel = choiceObj.AddComponent<RectTransform>();
         
         choicePanel.anchorMin = new Vector2(0, 0);
         choicePanel.anchorMax = new Vector2(1, 1);
