@@ -88,7 +88,10 @@ public class UIManager : MonoBehaviour
     
     void CreateUIElements()
     {
-        // Create background if missing
+        // Get layer manager
+        var layerManager = UILayerManager.Instance;
+        
+        // Create background if missing (Layer 0)
         if (backgroundImage == null)
         {
             GameObject bgObj = new GameObject("Background");
@@ -101,6 +104,9 @@ public class UIManager : MonoBehaviour
             bgRect.anchorMax = Vector2.one;
             bgRect.sizeDelta = Vector2.zero;
             bgRect.anchoredPosition = Vector2.zero;
+            
+            // Set to background layer
+            layerManager.SetUILayer(bgObj, UILayerManager.UILayer.Background);
         }
         
         // Create dialogue box with modern design
@@ -124,6 +130,9 @@ public class UIManager : MonoBehaviour
             var outline = dialogueObj.AddComponent<Outline>();
             outline.effectColor = new Color(1, 1, 1, 0.3f);
             outline.effectDistance = new Vector2(2, -2);
+            
+            // Set to dialogue layer
+            layerManager.SetUILayer(dialogueObj, UILayerManager.UILayer.DialogueBox);
         }
         
         // Create scrollable dialogue text
@@ -202,6 +211,9 @@ public class UIManager : MonoBehaviour
             // Add background
             var statsBg = statsObj.AddComponent<Image>();
             statsBg.color = new Color(0, 0, 0, 0.7f);
+            
+            // Set to stats layer (above dialogue)
+            layerManager.SetUILayer(statsObj, UILayerManager.UILayer.StatsPanel);
         }
         
         // Create effects container
@@ -214,7 +226,13 @@ public class UIManager : MonoBehaviour
             effectsContainer.anchorMax = Vector2.one;
             effectsContainer.sizeDelta = Vector2.zero;
             effectsContainer.anchoredPosition = Vector2.zero;
+            
+            // Set to effects layer (above everything except screen flash)
+            layerManager.SetUILayer(effectsObj, UILayerManager.UILayer.Effects);
         }
+        
+        // Organize all existing UI elements
+        layerManager.OrganizeUIHierarchy(mainCanvas);
     }
     
     public void SetBackgroundImage(Sprite sprite)

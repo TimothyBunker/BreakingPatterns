@@ -72,6 +72,9 @@ public class FeedbackSystem : MonoBehaviour
         rect.anchorMax = Vector2.one;
         rect.sizeDelta = Vector2.zero;
         rect.anchoredPosition = Vector2.zero;
+        
+        // Ensure screen flash is on top
+        UILayerManager.Instance.SetUILayer(flashObj, UILayerManager.UILayer.ScreenFlash);
     }
     
     public void ShowStatChangeFeedback(StatChangeResult result, Vector3 worldPosition)
@@ -138,6 +141,9 @@ public class FeedbackSystem : MonoBehaviour
             Debug.LogError("Failed to instantiate floating text prefab");
             return;
         }
+        
+        // Ensure floating text appears above dialogue
+        UILayerManager.Instance.SetUILayer(textObj, UILayerManager.UILayer.Effects);
         
         RectTransform rect = textObj.GetComponent<RectTransform>();
         if (rect == null)
@@ -257,6 +263,9 @@ public class FeedbackSystem : MonoBehaviour
         
         RectTransform rect = criticalText.GetComponent<RectTransform>();
         rect.position = position + Vector3.up * 50;
+        
+        // Ensure critical text is visible above other effects
+        UILayerManager.Instance.SetUILayer(criticalText, UILayerManager.UILayer.Effects);
         
         StartCoroutine(AnimateCriticalText(criticalText, rect));
     }
