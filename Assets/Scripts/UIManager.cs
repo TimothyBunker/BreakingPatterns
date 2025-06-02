@@ -51,6 +51,41 @@ public class UIManager : MonoBehaviour
     {
         SetupCanvas();
         CreateUIElements();
+        
+        // Try to find and hide original UI elements
+        HideOriginalUI();
+    }
+    
+    void HideOriginalUI()
+    {
+        // Find GameManager's UI references and redirect them
+        GameManager gm = GameManager.Instance;
+        if (gm != null)
+        {
+            // Hide original text elements if they exist
+            if (gm.profitText != null && gm.profitText.gameObject != profitText?.gameObject)
+            {
+                gm.profitText.gameObject.SetActive(false);
+            }
+            if (gm.relText != null && gm.relText.gameObject != relationshipText?.gameObject)
+            {
+                gm.relText.gameObject.SetActive(false);
+            }
+            if (gm.suspText != null && gm.suspText.gameObject != suspicionText?.gameObject)
+            {
+                gm.suspText.gameObject.SetActive(false);
+            }
+            
+            // Redirect to our new UI elements
+            if (profitText == null) CreateStatDisplay("Profit", profitText, new Color(0.2f, 0.8f, 0.2f));
+            if (relationshipText == null) CreateStatDisplay("Relations", relationshipText, new Color(0.3f, 0.7f, 1f));
+            if (suspicionText == null) CreateStatDisplay("Suspicion", suspicionText, new Color(1f, 0.6f, 0.2f));
+            
+            // Update GameManager references
+            gm.profitText = profitText;
+            gm.relText = relationshipText;
+            gm.suspText = suspicionText;
+        }
     }
     
     void SetupCanvas()
@@ -276,33 +311,46 @@ public class UIManager : MonoBehaviour
     
     public void CreateStatDisplay(string label, TextMeshProUGUI textComponent, Color color)
     {
-        if (statsPrefab == null)
-        {
-            GameObject statObj = new GameObject($"Stat_{label}");
-            statObj.transform.SetParent(statsContainer, false);
-            
-            // Add background
-            var bg = statObj.AddComponent<Image>();
-            bg.color = new Color(color.r, color.g, color.b, 0.2f);
-            
-            // Add text
-            var text = statObj.AddComponent<TextMeshProUGUI>();
-            text.text = $"{label}: 0";
-            text.fontSize = 22;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Center;
-            text.fontStyle = FontStyles.Bold;
-            
-            // Add layout element
-            var layoutElement = statObj.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 40;
-            layoutElement.flexibleWidth = 1;
-            
-            // Store reference
-            if (label.Contains("Profit")) profitText = text;
-            else if (label.Contains("Relation")) relationshipText = text;
-            else if (label.Contains("Suspicion")) suspicionText = text;
-        }
+        if (statsContainer == null) return;
+        
+        GameObject statObj = new GameObject($"Stat_{label}");
+        statObj.transform.SetParent(statsContainer, false);
+        
+        // Add background with rounded corners effect
+        var bg = statObj.AddComponent<Image>();
+        bg.color = new Color(color.r * 0.3f, color.g * 0.3f, color.b * 0.3f, 0.8f);
+        
+        // Add padding container
+        GameObject paddingObj = new GameObject("Padding");
+        paddingObj.transform.SetParent(statObj.transform, false);
+        RectTransform paddingRect = paddingObj.AddComponent<RectTransform>();
+        paddingRect.anchorMin = Vector2.zero;
+        paddingRect.anchorMax = Vector2.one;
+        paddingRect.offsetMin = new Vector2(15, 5);
+        paddingRect.offsetMax = new Vector2(-15, -5);
+        
+        // Add text
+        var text = paddingObj.AddComponent<TextMeshProUGUI>();
+        text.text = $"{label}: 0";
+        text.fontSize = 24;
+        text.color = color;
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontStyle = FontStyles.Bold;
+        
+        // Add subtle outline
+        var outline = paddingObj.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.8f);
+        outline.effectDistance = new Vector2(1, -1);
+        
+        // Add layout element
+        var layoutElement = statObj.AddComponent<LayoutElement>();
+        layoutElement.preferredHeight = 50;
+        layoutElement.flexibleWidth = 1;
+        
+        // Store reference
+        if (label.Contains("Profit")) profitText = text;
+        else if (label.Contains("Relation")) relationshipText = text;
+        else if (label.Contains("Suspicion")) suspicionText = text;
     }
     
     public RectTransform GetEffectsContainer()

@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     private StatModifier statModifier;
     private FeedbackSystem feedbackSystem;
     private UIManager uiManager;
+    private DialogueUIIntegration uiIntegration;
 
 
     void Awake()
@@ -56,6 +57,8 @@ public class GameManager : MonoBehaviour
             feedbackSystem = GetComponent<FeedbackSystem>() ?? gameObject.AddComponent<FeedbackSystem>();
         if (uiManager == null)
             uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
+        if (uiIntegration == null)
+            uiIntegration = FindFirstObjectByType<DialogueUIIntegration>() ?? new GameObject("DialogueUIIntegration").AddComponent<DialogueUIIntegration>();
 
         UpdateUI(); // Update UI with initial values
     }
