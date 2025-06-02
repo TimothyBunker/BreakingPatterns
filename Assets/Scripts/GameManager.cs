@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     [Header("New Systems")]
     private StatModifier statModifier;
     private FeedbackSystem feedbackSystem;
+    private UIManager uiManager;
 
 
     void Awake()
@@ -53,6 +54,8 @@ public class GameManager : MonoBehaviour
             statModifier = GetComponent<StatModifier>() ?? gameObject.AddComponent<StatModifier>();
         if (feedbackSystem == null)
             feedbackSystem = GetComponent<FeedbackSystem>() ?? gameObject.AddComponent<FeedbackSystem>();
+        if (uiManager == null)
+            uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
 
         UpdateUI(); // Update UI with initial values
     }

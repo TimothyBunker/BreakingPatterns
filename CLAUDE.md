@@ -88,3 +88,8 @@ JSON Files → DialogueJsonLoader → DialogueManager ↔ GameManager
 3. `DialogueData.cs` - Data structures for dialogue system
 4. `breaking_patterns.json` - Main story content
 5. `side_events.json` - Random event content
+6. `StatModifier.cs` - RNG system for dynamic stat changes
+7. `FeedbackSystem.cs` - Visual/audio feedback for player actions
+8. `UIManager.cs` - Responsive UI system
+9. `DialogueUI.cs` - Modern dialogue presentation
+10. `RelationshipEventSystem.cs` - Relationship-based events
