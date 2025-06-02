@@ -18,6 +18,10 @@ public class GameManager : MonoBehaviour
     public int maxSuspicion = 100;
 
     private int lastProfit, lastRelationships, lastSuspicion;
+    
+    [Header("New Systems")]
+    private StatModifier statModifier;
+    private FeedbackSystem feedbackSystem;
 
 
     void Awake()
@@ -36,38 +40,74 @@ public class GameManager : MonoBehaviour
     {
         // Initialize with starting values or load from save
         Profit = 0;
-        Relationships = 0; // Or a starting value
+        Relationships = 50; // Start with some relationships to make it meaningful
         Suspicion = 0;
 
         // Store initial values to compare for sound triggers on first ApplyChoice
         lastProfit = Profit;
         lastRelationships = Relationships;
         lastSuspicion = Suspicion;
+        
+        // Initialize new systems
+        if (statModifier == null)
+            statModifier = GetComponent<StatModifier>() ?? gameObject.AddComponent<StatModifier>();
+        if (feedbackSystem == null)
+            feedbackSystem = GetComponent<FeedbackSystem>() ?? gameObject.AddComponent<FeedbackSystem>();
 
         UpdateUI(); // Update UI with initial values
     }
 
 
+    // Legacy method for backwards compatibility
     public void ApplyChoice(int p, int r, int s)
     {
-        Profit += p;
-        Relationships += r;
-        Suspicion = Mathf.Clamp(Suspicion + s, 0, maxSuspicion);
+        var option = new DialogueOption();
+        option.statChanges = new StatChanges { profit = p, relationships = r, suspicion = s };
+        ApplyChoiceWithRNG(option);
+    }
+    
+    // New method that uses the dynamic stat system
+    public void ApplyChoiceWithRNG(DialogueOption option)
+    {
+        // Get dynamic stat changes
+        var result = statModifier.ApplyStatChanges(option);
+        
+        // Apply the actual changes
+        Profit = Mathf.Clamp(Profit + result.profitChange, 0, 999);
+        Relationships = Mathf.Clamp(Relationships + result.relationshipChange, 0, 100);
+        Suspicion = Mathf.Clamp(Suspicion + result.suspicionChange, 0, maxSuspicion);
+        
+        // Show feedback
+        if (feedbackSystem != null)
+        {
+            Vector3 feedbackPos = Input.mousePosition;
+            feedbackSystem.ShowStatChangeFeedback(result, feedbackPos);
+        }
 
-        // Play sounds based on changes
-        // Check if AudioManager exists to prevent errors if it's not in the scene
+        // Play sounds based on changes (enhanced for critical results)
         if (AudioManager.Instance != null)
         {
-            if (p > 0 || r > 0) // Any positive gain
+            if (result.criticalType == CriticalType.Success)
             {
-                if (Profit > lastProfit || Relationships > lastRelationships)
-                    AudioManager.Instance.PlayPositiveStatSound();
+                AudioManager.Instance.PlayPositiveStatSound();
             }
-            if (p < 0 || r < 0 || s > 0) // Any negative impact or suspicion increase
+            else if (result.criticalType == CriticalType.Failure)
             {
-                // Check specifically if suspicion increased or other stats decreased
-                if (Suspicion > lastSuspicion || Profit < lastProfit || Relationships < lastRelationships)
-                    AudioManager.Instance.PlayNegativeStatSound();
+                AudioManager.Instance.PlayNegativeStatSound();
+            }
+            else
+            {
+                // Normal sounds
+                if (result.profitChange > 0 || result.relationshipChange > 0)
+                {
+                    if (Profit > lastProfit || Relationships > lastRelationships)
+                        AudioManager.Instance.PlayPositiveStatSound();
+                }
+                if (result.profitChange < 0 || result.relationshipChange < 0 || result.suspicionChange > 0)
+                {
+                    if (Suspicion > lastSuspicion || Profit < lastProfit || Relationships < lastRelationships)
+                        AudioManager.Instance.PlayNegativeStatSound();
+                }
             }
         }
 
@@ -86,15 +126,34 @@ public class GameManager : MonoBehaviour
 
     void UpdateUI()
     {
-        if (profitText != null) profitText.text = $"Profit: {Profit}";
+        if (profitText != null) profitText.text = $"Profit: ${Profit}";
         else Debug.LogWarning("profitText is not assigned in GameManager.");
 
-        if (relText != null) relText.text = $"Relations: {Relationships}";
+        if (relText != null) 
+        {
+            string relStatus = GetRelationshipStatus();
+            relText.text = $"Relations: {Relationships} ({relStatus})";
+            
+            // Color code relationships
+            if (Relationships >= 75)
+                relText.color = Color.green;
+            else if (Relationships >= 50)
+                relText.color = Color.white;
+            else if (Relationships >= 25)
+                relText.color = Color.yellow;
+            else
+                relText.color = Color.red;
+        }
         else Debug.LogWarning("relText is not assigned in GameManager.");
 
         if (suspText != null)
         {
             string sTxt = $"Suspicion: {Suspicion}/{maxSuspicion}";
+            
+            // Add warning if relationships are affecting suspicion
+            if (Relationships > 75)
+                sTxt += " <size=14><color=#4CAF50>(Protected)</color></size>";
+            
             suspText.text = sTxt;
 
             bool danger = Suspicion >= maxSuspicion * 0.8f && Suspicion < maxSuspicion;
@@ -131,5 +190,31 @@ public class GameManager : MonoBehaviour
         // If you have other game state to reset (like dialogue progress), do it here.
         // Potentially, DialogueManager might need a Reset method too if it holds state
         // that needs clearing for a new game (e.g., if nodes list could change).
+    }
+    
+    // Relationship-based mechanics
+    public bool HasHighRelationships()
+    {
+        return Relationships >= 75;
+    }
+    
+    public bool HasLowRelationships()
+    {
+        return Relationships <= 25;
+    }
+    
+    public float GetRelationshipModifier()
+    {
+        // Returns a modifier from 0.5 to 1.5 based on relationships
+        return 0.5f + (Relationships / 100f);
+    }
+    
+    public string GetRelationshipStatus()
+    {
+        if (Relationships >= 80) return "Trusted Partner";
+        if (Relationships >= 60) return "Reliable Associate";
+        if (Relationships >= 40) return "Business Partner";
+        if (Relationships >= 20) return "Uneasy Alliance";
+        return "Hostile";
     }
 }

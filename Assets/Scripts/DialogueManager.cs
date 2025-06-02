@@ -27,6 +27,8 @@ public class DialogueManager : MonoBehaviour
     int nodeIdx, optionIdx;
     bool showingCard;
     readonly System.Random rng = new();
+    
+    RelationshipEventSystem relationshipEvents;
 
     /* ────── Public API called by loader ────── */
     public void InitDecks(List<DialogueNode> main, List<SideEvent> side)
@@ -34,6 +36,10 @@ public class DialogueManager : MonoBehaviour
         nodes = main;
         deck = side ?? new List<SideEvent>();
         nodeIdx = optionIdx = 0;
+        
+        // Initialize relationship event system
+        relationshipEvents = GetComponent<RelationshipEventSystem>() ?? gameObject.AddComponent<RelationshipEventSystem>();
+        
         LoadWaltPortrait();
         ShowNode();
     }
@@ -150,9 +156,38 @@ public class DialogueManager : MonoBehaviour
         if (bodyLabel == null) { Debug.LogError("bodyLabel is not assigned in DialogueManager!"); return; }
         if (bgImage == null) { Debug.LogError("bgImage is not assigned in DialogueManager!"); } // Can be optional
         if (charLeftImage == null) { Debug.LogError("charLeftImage is not assigned in DialogueManager!"); } // Can be optional
-
-
-        currentOpts = opts;
+        
+        // Filter options based on relationship requirements
+        var filteredOpts = new List<DialogueOption>();
+        foreach (var opt in opts)
+        {
+            if (opt == null) continue;
+            
+            // Check relationship requirements
+            bool meetsReqs = GameManager.Instance.Relationships >= opt.minRelationship &&
+                           GameManager.Instance.Relationships <= opt.maxRelationship;
+                           
+            // Add visible options or hidden options that meet requirements
+            if (!opt.isHidden || meetsReqs)
+            {
+                filteredOpts.Add(opt);
+            }
+        }
+        
+        // Ensure we have at least one option
+        if (filteredOpts.Count == 0)
+        {
+            Debug.LogWarning("No valid options available! Adding a default option.");
+            filteredOpts.Add(new DialogueOption 
+            { 
+                text = "Continue...", 
+                nextNode = isEvent ? nodeIdx : -1 
+            });
+        }
+        
+        currentOpts = filteredOpts;
+        if (optionIdx >= currentOpts.Count) optionIdx = 0;
+        
         if (currentOpts == null)
         {
             Debug.LogError("DrawScreen called with null options list.");
@@ -201,9 +236,9 @@ public class DialogueManager : MonoBehaviour
                 if (o == null) continue; // Skip null options
                 string cursor = (i == optionIdx) ? "<color=#FFD700>> </color>" : "  "; // Non-breaking space for alignment
                 sb.Append(cursor).Append(i + 1).Append(". ").Append(o.text).Append(" [")
-                  .Append(ColorNum(o.profit)).Append("|")
-                  .Append(ColorNum(o.relationships)).Append("|")
-                  .Append(ColorNum(o.suspicion)).Append("]\n");
+                  .Append(ColorNumRange(o.profit)).Append("|")
+                  .Append(ColorNumRange(o.relationships)).Append("|")
+                  .Append(ColorNumRange(o.suspicion)).Append("]\n");
             }
         }
 
@@ -224,6 +259,32 @@ public class DialogueManager : MonoBehaviour
         string c = n > 0 ? "#4CAF50" : "#E53935"; // Green for positive, Red for negative
         return $"<color={c}>{(n > 0 ? "+" : "")}{n}</color>";
     }
+    
+    string ColorNumRange(int baseValue)
+    {
+        if (baseValue == 0) return "<color=#CCCCCC>0</color>";
+        
+        // Calculate variance (roughly 1/3 of base value)
+        int variance = Mathf.Abs(baseValue) / 3;
+        if (variance < 1) variance = 1;
+        
+        int min = baseValue - variance;
+        int max = baseValue + variance;
+        
+        string c = baseValue > 0 ? "#4CAF50" : "#E53935";
+        
+        // Show as range if there's variance
+        if (variance > 0)
+        {
+            string minStr = min > 0 ? "+" + min : min.ToString();
+            string maxStr = max > 0 ? "+" + max : max.ToString();
+            return $"<color={c}>{minStr}~{maxStr}</color>";
+        }
+        else
+        {
+            return $"<color={c}>{(baseValue > 0 ? "+" : "")}{baseValue}</color>";
+        }
+    }
 
     /* ────── Choice handler ────── */
     void OnOptionSelected(int pick)
@@ -243,7 +304,11 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        GameManager.Instance?.ApplyChoice(opt.profit, opt.relationships, opt.suspicion);
+        // Use the new RNG-based system
+        GameManager.Instance?.ApplyChoiceWithRNG(opt);
+        
+        // Check for relationship-triggered events
+        relationshipEvents?.CheckRelationshipEvents();
 
         if (showingCard)
         {
@@ -286,6 +351,8 @@ public class DialogueManager : MonoBehaviour
             // Check general eligibility first
             if (GameManager.Instance != null &&
                 GameManager.Instance.Suspicion >= currentEventInDeck.minSuspicion &&
+                GameManager.Instance.Relationships >= currentEventInDeck.minRelationship &&
+                GameManager.Instance.Relationships <= currentEventInDeck.maxRelationship &&
                 nodeIdx <= currentEventInDeck.maxScene) // nodeIdx refers to the current main story progression
             {
                 // If it's a rare event, apply the 10% chance of it being considered

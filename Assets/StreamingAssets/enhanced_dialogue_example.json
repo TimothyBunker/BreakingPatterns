@@ -1,0 +1,100 @@
+{
+  "nodes": [
+    {
+      "body": "Jesse comes to you with a proposal. Your relationship with him will determine the options available.",
+      "background": "bb_waltnjesselair",
+      "charLeft": "Jesse_front",
+      "options": [
+        { 
+          "text": "Listen to his idea.", 
+          "profit": 0, 
+          "relationships": 5, 
+          "suspicion": 0, 
+          "nextNode": 1,
+          "minRelationship": 0,
+          "maxRelationship": 100,
+          "isHidden": false
+        },
+        {
+          "text": "[Trusted Partner] Work on an exclusive high-grade batch together.",
+          "profit": 30,
+          "relationships": 10,
+          "suspicion": 5,
+          "nextNode": 2,
+          "minRelationship": 75,
+          "maxRelationship": 100,
+          "isHidden": false
+        },
+        {
+          "text": "[Low Trust] Reject him harshly.",
+          "profit": 0,
+          "relationships": -20,
+          "suspicion": 0,
+          "nextNode": 3,
+          "minRelationship": 0,
+          "maxRelationship": 25,
+          "isHidden": false
+        }
+      ]
+    }
+  ]
+}
+
+{
+  "side_events": [
+    {
+      "body": "Jesse vouches for you with a new buyer, reducing DEA attention.",
+      "background": "bb_parkinglot",
+      "charLeft": "Jesse_front",
+      "options": [
+        {
+          "text": "Accept his help gratefully.",
+          "profit": 15,
+          "relationships": 10,
+          "suspicion": -15,
+          "nextNode": -1
+        },
+        {
+          "text": "Use this chance to expand operations.",
+          "profit": 30,
+          "relationships": 5,
+          "suspicion": -5,
+          "nextNode": -1
+        }
+      ],
+      "minSuspicion": 20,
+      "maxScene": 20,
+      "minRelationship": 70,
+      "maxRelationship": 100,
+      "tag": "loyalty_bonus",
+      "rareChance": 0.3
+    },
+    {
+      "body": "Your partners are talking to the DEA behind your back!",
+      "background": "bb_parkinglotb",
+      "charLeft": "Hank_front",
+      "options": [
+        {
+          "text": "Confront them directly.",
+          "profit": -10,
+          "relationships": -15,
+          "suspicion": 20,
+          "nextNode": -1
+        },
+        {
+          "text": "Plan your escape.",
+          "profit": -20,
+          "relationships": -10,
+          "suspicion": 30,
+          "nextNode": -1
+        }
+      ],
+      "minSuspicion": 40,
+      "maxScene": 30,
+      "minRelationship": 0,
+      "maxRelationship": 20,
+      "tag": "betrayal",
+      "rareChance": 0.4
+    }
+  ]
+}
