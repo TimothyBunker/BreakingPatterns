@@ -62,7 +62,9 @@ public class GameManager : MonoBehaviour
     public void ApplyChoice(int p, int r, int s)
     {
         var option = new DialogueOption();
-        option.statChanges = new StatChanges { profit = p, relationships = r, suspicion = s };
+        option.profit = p;
+        option.relationships = r;
+        option.suspicion = s;
         ApplyChoiceWithRNG(option);
     }
     

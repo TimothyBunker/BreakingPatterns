@@ -37,7 +37,7 @@ public class FeedbackSystem : MonoBehaviour
     {
         mainCamera = Camera.main;
         originalCameraPos = mainCamera.transform.position;
-        audioManager = FindObjectOfType<AudioManager>();
+        audioManager = FindFirstObjectByType<AudioManager>();
         
         if (screenFlashImage == null)
         {

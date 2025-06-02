@@ -22,7 +22,7 @@ public class RelationshipEventSystem : MonoBehaviour
     void Start()
     {
         gameManager = GameManager.Instance;
-        dialogueManager = FindObjectOfType<DialogueManager>();
+        dialogueManager = FindFirstObjectByType<DialogueManager>();
         InitializeDefaultEvents();
     }
     
