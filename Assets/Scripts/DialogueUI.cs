@@ -154,7 +154,7 @@ public class DialogueUI : MonoBehaviour
             // Create content container with padding
             GameObject contentObj = new GameObject("DialogueContent");
             contentObj.transform.SetParent(dialoguePanel, false);
-            RectTransform contentRect = contentObj.GetComponent<RectTransform>();
+            RectTransform contentRect = contentObj.AddComponent<RectTransform>();
             contentRect.anchorMin = Vector2.zero;
             contentRect.anchorMax = Vector2.one;
             contentRect.offsetMin = new Vector2(panelMargin, panelMargin);
@@ -274,13 +274,19 @@ public class DialogueUI : MonoBehaviour
     
     public void DisplayDialogue(string speaker, string body, List<DialogueOption> options, int selectedIndex)
     {
+        // Ensure UI is created
+        if (dialoguePanel == null || speakerNameText == null || dialogueBodyText == null)
+        {
+            CreateUIElements();
+        }
+        
         // Update speaker name
         if (speakerNameText != null && !string.IsNullOrEmpty(speaker))
         {
             speakerNameText.text = speaker;
             speakerNameText.gameObject.SetActive(true);
         }
-        else
+        else if (speakerNameText != null && speakerNameText.gameObject != null)
         {
             speakerNameText.gameObject.SetActive(false);
         }
@@ -290,11 +296,13 @@ public class DialogueUI : MonoBehaviour
         {
             dialogueBodyText.text = body;
             Canvas.ForceUpdateCanvases();
-            dialogueScrollRect.verticalNormalizedPosition = 1f;
+            if (dialogueScrollRect != null)
+                dialogueScrollRect.verticalNormalizedPosition = 1f;
         }
         
         // Update choices
-        UpdateChoices(options, selectedIndex);
+        if (options != null)
+            UpdateChoices(options, selectedIndex);
     }
     
     void UpdateChoices(List<DialogueOption> options, int selectedIndex)
@@ -302,7 +310,8 @@ public class DialogueUI : MonoBehaviour
         // Clear existing choices
         foreach (var button in activeChoiceButtons)
         {
-            Destroy(button);
+            if (button != null)
+                Destroy(button);
         }
         activeChoiceButtons.Clear();
         
@@ -315,27 +324,42 @@ public class DialogueUI : MonoBehaviour
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            GameObject buttonObj = CreateChoiceButton(option, i, i == selectedIndex);
-            activeChoiceButtons.Add(buttonObj);
+            if (option != null)
+            {
+                GameObject buttonObj = CreateChoiceButton(option, i, i == selectedIndex);
+                activeChoiceButtons.Add(buttonObj);
+            }
         }
     }
     
     void CreateChoicePanel()
     {
+        // Find the dialogue content container
+        Transform contentParent = dialoguePanel;
+        foreach (Transform child in dialoguePanel)
+        {
+            if (child.name == "DialogueContent")
+            {
+                contentParent = child;
+                break;
+            }
+        }
+        
         GameObject choiceObj = new GameObject("ChoicePanel");
-        choiceObj.transform.SetParent(dialoguePanel, false);
+        choiceObj.transform.SetParent(contentParent, false);
         choicePanel = choiceObj.AddComponent<RectTransform>();
         
-        choicePanel.anchorMin = new Vector2(0, 0);
-        choicePanel.anchorMax = new Vector2(1, 1);
-        choicePanel.offsetMin = new Vector2(panelMargin, panelMargin);
-        choicePanel.offsetMax = new Vector2(-panelMargin, -panelMargin);
+        // Add to the vertical layout of the content
+        LayoutElement layout = choiceObj.AddComponent<LayoutElement>();
+        layout.flexibleHeight = 0;
+        layout.preferredHeight = 200; // Space for choices
         
         choiceLayoutGroup = choiceObj.AddComponent<VerticalLayoutGroup>();
         choiceLayoutGroup.spacing = 10;
         choiceLayoutGroup.childControlHeight = false;
         choiceLayoutGroup.childControlWidth = true;
         choiceLayoutGroup.childForceExpandWidth = true;
+        choiceLayoutGroup.padding = new RectOffset(0, 0, 20, 0);
     }
     
     GameObject CreateChoiceButton(DialogueOption option, int index, bool isSelected)
