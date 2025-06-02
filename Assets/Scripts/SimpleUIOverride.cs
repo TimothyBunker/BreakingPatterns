@@ -213,7 +213,7 @@ public class SimpleUIOverride : MonoBehaviour
         }
     }
     
-    void CreateStatDisplay(string label, Transform parent, TextMeshProUGUI originalText)
+    void CreateStatDisplay(string label, Transform parent, TMP_Text originalText)
     {
         GameObject statObj = new GameObject($"Stat_{label}");
         statObj.transform.SetParent(parent, false);
