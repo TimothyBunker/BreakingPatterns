@@ -187,8 +187,8 @@ public class SimpleUIOverride : MonoBehaviour
         Image panelBg = dialogueObj.AddComponent<Image>();
         panelBg.color = new Color(0, 0, 0, 0.9f);
         
-        newDialoguePanel.anchorMin = new Vector2(0.19f, 0.4f); // Higher up to make room for more options
-        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.65f); // Smaller dialogue area
+        newDialoguePanel.anchorMin = new Vector2(0.25f, 0.45f); // Narrower and centered
+        newDialoguePanel.anchorMax = new Vector2(0.75f, 0.65f); // Smaller dialogue area
         newDialoguePanel.offsetMin = new Vector2(0, 10);
         newDialoguePanel.offsetMax = new Vector2(0, -10);
         
@@ -224,9 +224,9 @@ public class SimpleUIOverride : MonoBehaviour
         optionsObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsObj.AddComponent<RectTransform>();
         
-        // Position options panel with more space for options
-        optionsPanel.anchorMin = new Vector2(0.19f, 0.02f);
-        optionsPanel.anchorMax = new Vector2(0.81f, 0.38f); // Much taller for more options
+        // Position options panel narrower and centered
+        optionsPanel.anchorMin = new Vector2(0.25f, 0.05f);
+        optionsPanel.anchorMax = new Vector2(0.75f, 0.43f); // Taller for more options
         
         // Add semi-transparent background
         Image optionsBg = optionsObj.AddComponent<Image>();
@@ -243,12 +243,12 @@ public class SimpleUIOverride : MonoBehaviour
         
         Debug.Log("SimpleUIOverride: Created options panel");
         
-        // Create stats panel at top (skinnier vertically)
+        // Create stats panel at top (narrower)
         statsPanel = new GameObject("NewStatsPanel");
         statsPanel.transform.SetParent(mainCanvas.transform, false);
         RectTransform statsRect = statsPanel.AddComponent<RectTransform>();
-        statsRect.anchorMin = new Vector2(0.1f, 0.92f);
-        statsRect.anchorMax = new Vector2(0.9f, 0.98f);
+        statsRect.anchorMin = new Vector2(0.15f, 0.92f);
+        statsRect.anchorMax = new Vector2(0.85f, 0.98f);
         
         Image statsBg = statsPanel.AddComponent<Image>();
         statsBg.color = new Color(0, 0, 0, 0.8f);
@@ -330,6 +330,16 @@ public class SimpleUIOverride : MonoBehaviour
         if (dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.transform.parent != null)
             dialogueManager.bodyLabel.transform.parent.gameObject.SetActive(false);
             
+        // Hide all option buttons from DialogueManager
+        var allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
+        foreach (var button in allButtons)
+        {
+            if (button.gameObject.name.StartsWith("Option_") || button.gameObject.name.Contains("Choice"))
+            {
+                button.gameObject.SetActive(false);
+            }
+        }
+        
         // Also hide any other UI systems that might be conflicting
         var dialogueUI = FindFirstObjectByType<DialogueUI>();
         if (dialogueUI != null)
@@ -340,6 +350,23 @@ public class SimpleUIOverride : MonoBehaviour
             uiIntegration.gameObject.SetActive(false);
     }
     
+    void HideOldButtons()
+    {
+        // Find and hide any dialogue text or option elements not created by us
+        var allTexts = FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None);
+        foreach (var text in allTexts)
+        {
+            if (text == newDialogueText || text.transform.IsChildOf(transform))
+                continue;
+                
+            if (text.text.Contains("Start a meth empire") || text.text.Contains("Stick to teaching") || 
+                text.text.Contains("After receiving your cancer"))
+            {
+                text.gameObject.SetActive(false);
+            }
+        }
+    }
+    
     IEnumerator InterceptAndDisplay()
     {
         bool firstUpdate = true;
@@ -347,6 +374,9 @@ public class SimpleUIOverride : MonoBehaviour
         while (true)
         {
             yield return null;
+            
+            // Continuously hide old UI buttons
+            HideOldButtons();
             
             // Copy background
             if (dialogueManager.bgImage != null && dialogueManager.bgImage.sprite != null)
@@ -482,16 +512,8 @@ public class SimpleUIOverride : MonoBehaviour
         if (optionsPanel == null || optionLines.Count == 0)
             return;
         
-        // Get the actual selected index from DialogueManager
+        // Always start at option 0 for new dialogue
         int dialogueManagerSelection = 0;
-        if (dialogueManager != null)
-        {
-            var optionIdxField = dialogueManager.GetType().GetField("optionIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (optionIdxField != null)
-            {
-                dialogueManagerSelection = (int)optionIdxField.GetValue(dialogueManager);
-            }
-        }
         
         // Parse options and create buttons
         int actualOptionIndex = 0;
@@ -501,8 +523,8 @@ public class SimpleUIOverride : MonoBehaviour
             if (string.IsNullOrWhiteSpace(optionLine))
                 continue;
             
-            // Check if this option is selected based on DialogueManager's index
-            bool isSelected = (actualOptionIndex == dialogueManagerSelection);
+            // Force first option to be selected to avoid yellow on option 2
+            bool isSelected = (actualOptionIndex == 0);
             GameObject optionObj = CreateOptionButton(optionLine, actualOptionIndex, isSelected);
             activeOptionButtons.Add(optionObj);
             actualOptionIndex++;
