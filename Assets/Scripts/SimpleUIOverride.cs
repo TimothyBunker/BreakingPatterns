@@ -527,6 +527,7 @@ public class SimpleUIOverride : MonoBehaviour
         if (dialogueChanged)
         {
             lastDialogueText = fullText;
+            lastSelectedOption = -1; // Reset selection tracking when dialogue changes
             
             // Split the text to find where options start
             string[] lines = fullText.Split('\n');
@@ -589,15 +590,9 @@ public class SimpleUIOverride : MonoBehaviour
         if (optionsPanel == null || optionLines.Count == 0)
             return;
         
-        // Get the current selected option from DialogueManager using reflection
-        if (dialogueManager != null)
-        {
-            var optionIdxField = dialogueManager.GetType().GetField("optionIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (optionIdxField != null)
-            {
-                currentSelectedOption = (int)optionIdxField.GetValue(dialogueManager);
-            }
-        }
+        // When dialogue changes, always start at option 0
+        // The DialogueManager might not have reset its optionIdx yet
+        currentSelectedOption = 0;
         
         // Parse options and create buttons
         int actualOptionIndex = 0;
@@ -631,9 +626,10 @@ public class SimpleUIOverride : MonoBehaviour
         // Set button colors for hover/press states
         ColorBlock colors = button.colors;
         colors.normalColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        colors.highlightedColor = new Color(1f, 0.843f, 0f, 0.7f);
-        colors.pressedColor = new Color(1f, 0.843f, 0f, 1f);
-        colors.selectedColor = new Color(1f, 0.843f, 0f, 0.9f);
+        colors.highlightedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.7f) : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        colors.pressedColor = isSelected ? new Color(1f, 0.843f, 0f, 1f) : new Color(0.4f, 0.4f, 0.4f, 0.8f);
+        colors.selectedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
         button.colors = colors;
         
         // Add click handler
@@ -721,6 +717,9 @@ public class SimpleUIOverride : MonoBehaviour
                     {
                         ColorBlock colors = button.colors;
                         colors.normalColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+                        colors.highlightedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.7f) : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                        colors.pressedColor = isSelected ? new Color(1f, 0.843f, 0f, 1f) : new Color(0.4f, 0.4f, 0.4f, 0.8f);
+                        colors.selectedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
                         button.colors = colors;
                     }
                 }
