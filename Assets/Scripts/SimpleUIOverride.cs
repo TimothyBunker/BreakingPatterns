@@ -17,7 +17,6 @@ public class SimpleUIOverride : MonoBehaviour
     [SerializeField] private Image newRightCharacter;
     [SerializeField] private TextMeshProUGUI newDialogueText;
     [SerializeField] private RectTransform newDialoguePanel;
-    [SerializeField] private ScrollRect dialogueScrollRect;
     
     [Header("Options Display")]
     [SerializeField] private RectTransform optionsPanel;
@@ -75,9 +74,6 @@ public class SimpleUIOverride : MonoBehaviour
         
         // Start intercepting
         StartCoroutine(InterceptAndDisplay());
-        
-        // Start scroll controls
-        StartCoroutine(HandleScrollInput());
     }
     
     void SetupAudio()
@@ -90,11 +86,6 @@ public class SimpleUIOverride : MonoBehaviour
         audioSource.volume = 0.5f;
     }
     
-    IEnumerator HandleScrollInput()
-    {
-        // Removed scroll functionality as requested
-        yield return null;
-    }
     
     void PlayUISound(string soundName)
     {
@@ -196,54 +187,28 @@ public class SimpleUIOverride : MonoBehaviour
         Image panelBg = dialogueObj.AddComponent<Image>();
         panelBg.color = new Color(0, 0, 0, 0.9f);
         
-        newDialoguePanel.anchorMin = new Vector2(0.19f, 0.25f); // Start after skinnier left panel, above options
-        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.5f); // End before skinnier right panel, reduced height
+        newDialoguePanel.anchorMin = new Vector2(0.19f, 0.4f); // Higher up to make room for more options
+        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.65f); // Smaller dialogue area
         newDialoguePanel.offsetMin = new Vector2(0, 10);
         newDialoguePanel.offsetMax = new Vector2(0, -10);
         
-        // Create scroll view
-        GameObject scrollViewObj = new GameObject("DialogueScrollView");
-        scrollViewObj.transform.SetParent(dialogueObj.transform, false);
-        dialogueScrollRect = scrollViewObj.AddComponent<ScrollRect>();
+        // Create simple text container (no scrolling)
+        GameObject textContainer = new GameObject("DialogueTextContainer");
+        textContainer.transform.SetParent(dialogueObj.transform, false);
+        RectTransform textRect = textContainer.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = new Vector2(20, 20);
+        textRect.offsetMax = new Vector2(-20, -20);
         
-        RectTransform scrollViewRect = scrollViewObj.GetComponent<RectTransform>();
-        scrollViewRect.anchorMin = Vector2.zero;
-        scrollViewRect.anchorMax = Vector2.one;
-        scrollViewRect.offsetMin = new Vector2(10, 10);
-        scrollViewRect.offsetMax = new Vector2(-10, -10);
-        
-        // Create viewport
-        GameObject viewportObj = new GameObject("Viewport");
-        viewportObj.transform.SetParent(scrollViewObj.transform, false);
-        RectTransform viewportRect = viewportObj.AddComponent<RectTransform>();
-        viewportRect.anchorMin = Vector2.zero;
-        viewportRect.anchorMax = Vector2.one;
-        viewportRect.offsetMin = Vector2.zero;
-        viewportRect.offsetMax = Vector2.zero;
-        
-        Image viewportImage = viewportObj.AddComponent<Image>();
-        viewportImage.color = Color.clear;
-        Mask viewportMask = viewportObj.AddComponent<Mask>();
-        viewportMask.showMaskGraphic = false;
-        
-        // Create content container
-        GameObject contentObj = new GameObject("Content");
-        contentObj.transform.SetParent(viewportObj.transform, false);
-        RectTransform contentRect = contentObj.AddComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0, 1);
-        contentRect.anchorMax = new Vector2(1, 1);
-        contentRect.pivot = new Vector2(0.5f, 1);
-        contentRect.anchoredPosition = Vector2.zero;
-        contentRect.sizeDelta = new Vector2(0, 100); // Set initial height, width from anchors
-        
-        // Create text with proper layout settings
-        newDialogueText = contentObj.AddComponent<TextMeshProUGUI>();
-        newDialogueText.fontSize = 18;
+        // Create text directly
+        newDialogueText = textContainer.AddComponent<TextMeshProUGUI>();
+        newDialogueText.fontSize = 16; // Smaller to fit more text
         newDialogueText.color = Color.white;
         newDialogueText.alignment = TextAlignmentOptions.TopLeft;
-        newDialogueText.text = "TEXT TEST - If you can see this, scrollable text is working!";
+        newDialogueText.text = "";
         newDialogueText.enableWordWrapping = true;
-        newDialogueText.overflowMode = TextOverflowModes.Overflow;
+        newDialogueText.overflowMode = TextOverflowModes.Truncate; // Truncate if too long
         
         // Try to copy font from original dialogue text if available
         if (dialogueManager != null && dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.font != null)
@@ -252,88 +217,25 @@ public class SimpleUIOverride : MonoBehaviour
             Debug.Log($"SimpleUIOverride: Copied font from original dialogue: {dialogueManager.bodyLabel.font.name}");
         }
         
-        // Add content size fitter with proper settings
-        ContentSizeFitter fitter = contentObj.AddComponent<ContentSizeFitter>();
-        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        
-        // Configure scroll rect
-        dialogueScrollRect.content = contentRect;
-        dialogueScrollRect.viewport = viewportRect;
-        dialogueScrollRect.vertical = true;
-        dialogueScrollRect.horizontal = false;
-        dialogueScrollRect.movementType = ScrollRect.MovementType.Clamped;
-        
-        // Add scrollbar for visual feedback
-        GameObject scrollbarObj = new GameObject("Scrollbar");
-        scrollbarObj.transform.SetParent(dialogueObj.transform, false);
-        
-        RectTransform scrollbarRect = scrollbarObj.AddComponent<RectTransform>();
-        scrollbarRect.anchorMin = new Vector2(1, 0);
-        scrollbarRect.anchorMax = new Vector2(1, 1);
-        scrollbarRect.offsetMin = new Vector2(-20, 10);
-        scrollbarRect.offsetMax = new Vector2(-5, -10);
-        
-        Scrollbar scrollbar = scrollbarObj.AddComponent<Scrollbar>();
-        scrollbar.direction = Scrollbar.Direction.BottomToTop;
-        
-        Image scrollbarBg = scrollbarObj.AddComponent<Image>();
-        scrollbarBg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        
-        // Create scrollbar handle
-        GameObject handleObj = new GameObject("Handle");
-        handleObj.transform.SetParent(scrollbarObj.transform, false);
-        
-        RectTransform handleRect = handleObj.AddComponent<RectTransform>();
-        handleRect.anchorMin = Vector2.zero;
-        handleRect.anchorMax = Vector2.one;
-        handleRect.offsetMin = Vector2.zero;
-        handleRect.offsetMax = Vector2.zero;
-        
-        Image handleImage = handleObj.AddComponent<Image>();
-        handleImage.color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
-        
-        scrollbar.handleRect = handleRect;
-        scrollbar.targetGraphic = handleImage;
-        
-        // Connect scrollbar to scroll rect
-        dialogueScrollRect.verticalScrollbar = scrollbar;
-        
-        // Add minimal hint at the top of dialogue panel
-        GameObject hintObj = new GameObject("ScrollHint");
-        hintObj.transform.SetParent(dialogueObj.transform, false);
-        
-        RectTransform hintRect = hintObj.AddComponent<RectTransform>();
-        hintRect.anchorMin = new Vector2(0, 1);
-        hintRect.anchorMax = new Vector2(1, 1);
-        hintRect.offsetMin = new Vector2(0, -15);
-        hintRect.offsetMax = new Vector2(0, 0);
-        
-        TextMeshProUGUI hintText = hintObj.AddComponent<TextMeshProUGUI>();
-        hintText.text = "Navigate: ↑/↓ | Select: Enter/Space/Click";
-        hintText.fontSize = 10;
-        hintText.color = new Color(1, 1, 1, 0.3f);
-        hintText.alignment = TextAlignmentOptions.Center;
-        
-        Debug.Log("SimpleUIOverride: Created scrollable text display with scrollbar and hint");
+        Debug.Log("SimpleUIOverride: Created dialogue display");
         
         // Create options panel
         GameObject optionsObj = new GameObject("OptionsPanel");
         optionsObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsObj.AddComponent<RectTransform>();
         
-        // Position options panel below dialogue but above the bottom
-        optionsPanel.anchorMin = new Vector2(0.19f, 0.05f);
-        optionsPanel.anchorMax = new Vector2(0.81f, 0.25f);
+        // Position options panel with more space for options
+        optionsPanel.anchorMin = new Vector2(0.19f, 0.02f);
+        optionsPanel.anchorMax = new Vector2(0.81f, 0.38f); // Much taller for more options
         
         // Add semi-transparent background
         Image optionsBg = optionsObj.AddComponent<Image>();
         optionsBg.color = new Color(0, 0, 0, 0.7f);
         
-        // Add vertical layout for options
+        // Add vertical layout for options with tighter spacing
         VerticalLayoutGroup optionsLayout = optionsObj.AddComponent<VerticalLayoutGroup>();
-        optionsLayout.spacing = 10;
-        optionsLayout.padding = new RectOffset(20, 20, 10, 10);
+        optionsLayout.spacing = 5; // Tighter spacing
+        optionsLayout.padding = new RectOffset(15, 15, 8, 8); // Smaller padding
         optionsLayout.childAlignment = TextAnchor.UpperCenter;
         optionsLayout.childControlHeight = false;
         optionsLayout.childControlWidth = true;
@@ -559,12 +461,8 @@ public class SimpleUIOverride : MonoBehaviour
             // Force immediate layout rebuild
             newDialogueText.ForceMeshUpdate();
             
-            // Reset scroll to top when text changes
-            if (dialogueScrollRect != null && dialogueScrollRect.content != null)
-            {
-                Canvas.ForceUpdateCanvases();
-                dialogueScrollRect.verticalNormalizedPosition = 1f;
-            }
+            // Update canvas
+            Canvas.ForceUpdateCanvases();
         }
         
         // Always update options to handle selection changes
@@ -650,9 +548,9 @@ public class SimpleUIOverride : MonoBehaviour
         int optionIndex = index;
         button.onClick.AddListener(() => OnOptionClicked(optionIndex));
         
-        // Add layout element
+        // Add layout element with smaller height to fit more options
         LayoutElement layout = buttonObj.AddComponent<LayoutElement>();
-        layout.preferredHeight = 45;
+        layout.preferredHeight = 35; // Smaller to fit more options
         layout.flexibleWidth = 1;
         
         // Add text
@@ -672,7 +570,7 @@ public class SimpleUIOverride : MonoBehaviour
         cleanText = cleanText.Replace("> ", "  ").Trim();
         
         text.text = cleanText;
-        text.fontSize = 18;
+        text.fontSize = 16; // Smaller text for more compact options
         text.color = isSelected ? Color.black : Color.white;
         text.alignment = TextAlignmentOptions.MidlineLeft;
         text.enableWordWrapping = true;
