@@ -167,44 +167,44 @@ public class SimpleUIOverride : MonoBehaviour
         // 4. Dialogue panel (index 5)
         // 5. Stats panel (index 6)
         
-        // Create semi-transparent panels behind characters (skinnier and more opaque)
+        // Create semi-transparent panels behind characters (much skinnier)
         leftPanel = new GameObject("LeftCharacterPanel");
         leftPanel.transform.SetParent(mainCanvas.transform, false);
         Image leftPanelImg = leftPanel.AddComponent<Image>();
         leftPanelImg.color = new Color(0, 0, 0, 0.6f); // More opaque
         RectTransform leftPanelRect = leftPanel.GetComponent<RectTransform>();
         leftPanelRect.anchorMin = new Vector2(0, 0); // Full height
-        leftPanelRect.anchorMax = new Vector2(0.25f, 1f); // Skinnier (0-25%)
+        leftPanelRect.anchorMax = new Vector2(0.18f, 1f); // Much skinnier (0-18%)
         
         rightPanel = new GameObject("RightCharacterPanel");
         rightPanel.transform.SetParent(mainCanvas.transform, false);
         Image rightPanelImg = rightPanel.AddComponent<Image>();
         rightPanelImg.color = new Color(0, 0, 0, 0.6f); // More opaque
         RectTransform rightPanelRect = rightPanel.GetComponent<RectTransform>();
-        rightPanelRect.anchorMin = new Vector2(0.75f, 0); // Full height, further right
-        rightPanelRect.anchorMax = new Vector2(1f, 1f); // Skinnier (75-100%)
+        rightPanelRect.anchorMin = new Vector2(0.82f, 0); // Full height, further right
+        rightPanelRect.anchorMax = new Vector2(1f, 1f); // Much skinnier (82-100%)
         
-        // Create left character (positioned lower)
+        // Create left character (larger and positioned lower)
         leftCharObj = new GameObject("NewLeftCharacter");
         leftCharObj.transform.SetParent(mainCanvas.transform, false);
         newLeftCharacter = leftCharObj.AddComponent<Image>();
         newLeftCharacter.preserveAspect = true;
         
         RectTransform leftRect = leftCharObj.GetComponent<RectTransform>();
-        leftRect.anchorMin = new Vector2(0.02f, 0f); // Start at bottom
-        leftRect.anchorMax = new Vector2(0.23f, 0.7f); // Lower position (0-70% height)
+        leftRect.anchorMin = new Vector2(-0.05f, 0f); // Start slightly off-screen for larger size
+        leftRect.anchorMax = new Vector2(0.25f, 0.85f); // Larger and taller (0-85% height)
         leftRect.anchoredPosition = Vector2.zero;
         leftRect.sizeDelta = Vector2.zero;
         
-        // Create right character (positioned lower)
+        // Create right character (larger and positioned lower)
         rightCharObj = new GameObject("NewRightCharacter");
         rightCharObj.transform.SetParent(mainCanvas.transform, false);
         newRightCharacter = rightCharObj.AddComponent<Image>();
         newRightCharacter.preserveAspect = true;
         
         RectTransform rightRect = rightCharObj.GetComponent<RectTransform>();
-        rightRect.anchorMin = new Vector2(0.77f, 0f); // Start at bottom
-        rightRect.anchorMax = new Vector2(0.98f, 0.7f); // Lower position (0-70% height)
+        rightRect.anchorMin = new Vector2(0.75f, 0f); // Start further right for larger size
+        rightRect.anchorMax = new Vector2(1.05f, 0.85f); // Larger and taller, slightly off-screen
         rightRect.anchoredPosition = Vector2.zero;
         rightRect.sizeDelta = Vector2.zero;
         
@@ -216,8 +216,8 @@ public class SimpleUIOverride : MonoBehaviour
         Image panelBg = dialogueObj.AddComponent<Image>();
         panelBg.color = new Color(0, 0, 0, 0.9f);
         
-        newDialoguePanel.anchorMin = new Vector2(0.26f, 0); // Start after left panel
-        newDialoguePanel.anchorMax = new Vector2(0.74f, 0.4f); // End before right panel, taller
+        newDialoguePanel.anchorMin = new Vector2(0.19f, 0); // Start after skinnier left panel
+        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.4f); // End before skinnier right panel, taller
         newDialoguePanel.offsetMin = new Vector2(0, 20);
         newDialoguePanel.offsetMax = new Vector2(0, 0);
         
@@ -255,16 +255,19 @@ public class SimpleUIOverride : MonoBehaviour
         contentRect.pivot = new Vector2(0.5f, 1);
         contentRect.anchoredPosition = Vector2.zero;
         
-        // Create text
+        // Create text with proper layout settings
         newDialogueText = contentObj.AddComponent<TextMeshProUGUI>();
         newDialogueText.fontSize = 18;
         newDialogueText.color = Color.white;
         newDialogueText.alignment = TextAlignmentOptions.TopLeft;
         newDialogueText.text = "TEXT TEST - If you can see this, scrollable text is working!";
+        newDialogueText.enableWordWrapping = true;
+        newDialogueText.overflowMode = TextOverflowModes.Overflow;
         
-        // Add content size fitter
+        // Add content size fitter with proper settings
         ContentSizeFitter fitter = contentObj.AddComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         
         // Configure scroll rect
         dialogueScrollRect.content = contentRect;
@@ -326,11 +329,11 @@ public class SimpleUIOverride : MonoBehaviour
         
         Debug.Log("SimpleUIOverride: Created scrollable text display with scrollbar and hint");
         
-        // Create stats panel at top
+        // Create stats panel at top (skinnier vertically)
         statsPanel = new GameObject("NewStatsPanel");
         statsPanel.transform.SetParent(mainCanvas.transform, false);
         RectTransform statsRect = statsPanel.AddComponent<RectTransform>();
-        statsRect.anchorMin = new Vector2(0.1f, 0.9f);
+        statsRect.anchorMin = new Vector2(0.1f, 0.92f);
         statsRect.anchorMax = new Vector2(0.9f, 0.98f);
         
         Image statsBg = statsPanel.AddComponent<Image>();
@@ -484,15 +487,21 @@ public class SimpleUIOverride : MonoBehaviour
                         newDialogueText.text = dialogueManager.bodyLabel.text;
                         Debug.Log($"SimpleUIOverride: Updated text to '{newDialogueText.text}' (length: {dialogueManager.bodyLabel.text.Length})");
                         
+                        // Force immediate layout rebuild
+                        newDialogueText.ForceMeshUpdate();
+                        
                         // Reset scroll to top when text changes
                         if (dialogueScrollRect != null)
                         {
+                            // Force layout update before scrolling
+                            LayoutRebuilder.ForceRebuildLayoutImmediate(dialogueScrollRect.content);
                             Canvas.ForceUpdateCanvases();
+                            
+                            // Reset scroll position
                             dialogueScrollRect.verticalNormalizedPosition = 1f;
+                            
+                            Debug.Log($"SimpleUIOverride: Text updated and scroll reset. Content height: {dialogueScrollRect.content.rect.height}");
                         }
-                        
-                        // Force canvas update to ensure text displays
-                        Canvas.ForceUpdateCanvases();
                     }
                 }
                 else if (firstUpdate)
