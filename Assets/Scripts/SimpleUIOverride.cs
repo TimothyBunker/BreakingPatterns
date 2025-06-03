@@ -356,13 +356,18 @@ public class SimpleUIOverride : MonoBehaviour
         var allTexts = FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None);
         foreach (var text in allTexts)
         {
-            if (text == newDialogueText || text.transform.IsChildOf(transform))
+            if (text == null || text == newDialogueText)
                 continue;
                 
-            if (text.text.Contains("Start a meth empire") || text.text.Contains("Stick to teaching") || 
-                text.text.Contains("After receiving your cancer"))
+            if (text.transform == null || transform == null || text.transform.IsChildOf(transform))
+                continue;
+                
+            if (!string.IsNullOrEmpty(text.text) && 
+                (text.text.Contains("Start a meth empire") || text.text.Contains("Stick to teaching") || 
+                 text.text.Contains("After receiving your cancer")))
             {
-                text.gameObject.SetActive(false);
+                if (text.gameObject != null)
+                    text.gameObject.SetActive(false);
             }
         }
     }
