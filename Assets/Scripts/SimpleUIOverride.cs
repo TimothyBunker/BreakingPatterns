@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 public class SimpleUIOverride : MonoBehaviour
 {
@@ -17,11 +18,18 @@ public class SimpleUIOverride : MonoBehaviour
     [SerializeField] private RectTransform newDialoguePanel;
     [SerializeField] private ScrollRect dialogueScrollRect;
     
+    [Header("Options Display")]
+    [SerializeField] private RectTransform optionsPanel;
+    [SerializeField] private GameObject optionButtonPrefab;
+    private List<GameObject> activeOptionButtons = new List<GameObject>();
+    private int currentSelectedOption = 0;
+    
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     
     void Start()
     {
+        EnsureEventSystem();
         StartCoroutine(SetupOverride());
     }
     
@@ -216,10 +224,10 @@ public class SimpleUIOverride : MonoBehaviour
         Image panelBg = dialogueObj.AddComponent<Image>();
         panelBg.color = new Color(0, 0, 0, 0.9f);
         
-        newDialoguePanel.anchorMin = new Vector2(0.19f, 0); // Start after skinnier left panel
-        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.4f); // End before skinnier right panel, taller
-        newDialoguePanel.offsetMin = new Vector2(0, 20);
-        newDialoguePanel.offsetMax = new Vector2(0, 0);
+        newDialoguePanel.anchorMin = new Vector2(0.19f, 0.25f); // Start after skinnier left panel, above options
+        newDialoguePanel.anchorMax = new Vector2(0.81f, 0.5f); // End before skinnier right panel, reduced height
+        newDialoguePanel.offsetMin = new Vector2(0, 10);
+        newDialoguePanel.offsetMax = new Vector2(0, -10);
         
         // Create scroll view
         GameObject scrollViewObj = new GameObject("DialogueScrollView");
@@ -264,6 +272,13 @@ public class SimpleUIOverride : MonoBehaviour
         newDialogueText.text = "TEXT TEST - If you can see this, scrollable text is working!";
         newDialogueText.enableWordWrapping = true;
         newDialogueText.overflowMode = TextOverflowModes.Overflow;
+        
+        // Try to copy font from original dialogue text if available
+        if (dialogueManager != null && dialogueManager.bodyLabel != null && dialogueManager.bodyLabel.font != null)
+        {
+            newDialogueText.font = dialogueManager.bodyLabel.font;
+            Debug.Log($"SimpleUIOverride: Copied font from original dialogue: {dialogueManager.bodyLabel.font.name}");
+        }
         
         // Add content size fitter with proper settings
         ContentSizeFitter fitter = contentObj.AddComponent<ContentSizeFitter>();
@@ -312,23 +327,47 @@ public class SimpleUIOverride : MonoBehaviour
         // Connect scrollbar to scroll rect
         dialogueScrollRect.verticalScrollbar = scrollbar;
         
-        // Add scroll hint
+        // Add scroll hint at the top of dialogue panel
         GameObject hintObj = new GameObject("ScrollHint");
         hintObj.transform.SetParent(dialogueObj.transform, false);
         
         RectTransform hintRect = hintObj.AddComponent<RectTransform>();
-        hintRect.anchorMin = new Vector2(0, 0);
-        hintRect.anchorMax = new Vector2(1, 0);
-        hintRect.offsetMin = new Vector2(0, 0);
-        hintRect.offsetMax = new Vector2(0, 20);
+        hintRect.anchorMin = new Vector2(0, 1);
+        hintRect.anchorMax = new Vector2(1, 1);
+        hintRect.offsetMin = new Vector2(0, -20);
+        hintRect.offsetMax = new Vector2(0, 0);
         
         TextMeshProUGUI hintText = hintObj.AddComponent<TextMeshProUGUI>();
-        hintText.text = "📜 Scroll: Mouse Wheel, W/S, or Page Up/Down";
-        hintText.fontSize = 12;
-        hintText.color = new Color(1, 1, 1, 0.6f);
+        hintText.text = "Scroll: Mouse Wheel, W/S, Page Up/Down | Navigate: ↑/↓ | Select: Enter/Space/Click";
+        hintText.fontSize = 11;
+        hintText.color = new Color(1, 1, 1, 0.5f);
         hintText.alignment = TextAlignmentOptions.Center;
         
         Debug.Log("SimpleUIOverride: Created scrollable text display with scrollbar and hint");
+        
+        // Create options panel
+        GameObject optionsObj = new GameObject("OptionsPanel");
+        optionsObj.transform.SetParent(mainCanvas.transform, false);
+        optionsPanel = optionsObj.AddComponent<RectTransform>();
+        
+        // Position options panel below dialogue but above the bottom
+        optionsPanel.anchorMin = new Vector2(0.19f, 0.05f);
+        optionsPanel.anchorMax = new Vector2(0.81f, 0.25f);
+        
+        // Add semi-transparent background
+        Image optionsBg = optionsObj.AddComponent<Image>();
+        optionsBg.color = new Color(0, 0, 0, 0.7f);
+        
+        // Add vertical layout for options
+        VerticalLayoutGroup optionsLayout = optionsObj.AddComponent<VerticalLayoutGroup>();
+        optionsLayout.spacing = 10;
+        optionsLayout.padding = new RectOffset(20, 20, 10, 10);
+        optionsLayout.childAlignment = TextAnchor.UpperCenter;
+        optionsLayout.childControlHeight = false;
+        optionsLayout.childControlWidth = true;
+        optionsLayout.childForceExpandWidth = true;
+        
+        Debug.Log("SimpleUIOverride: Created options panel");
         
         // Create stats panel at top (skinnier vertically)
         statsPanel = new GameObject("NewStatsPanel");
@@ -367,7 +406,8 @@ public class SimpleUIOverride : MonoBehaviour
         leftCharObj.transform.SetSiblingIndex(3);     // Left character
         rightCharObj.transform.SetSiblingIndex(4);    // Right character
         dialogueObj.transform.SetSiblingIndex(5);     // Dialogue panel
-        statsPanel.transform.SetSiblingIndex(6);      // Stats panel on top
+        optionsObj.transform.SetSiblingIndex(6);      // Options panel
+        statsPanel.transform.SetSiblingIndex(7);      // Stats panel on top
         
         Debug.Log("SimpleUIOverride: UI creation complete with proper layering");
     }
@@ -434,6 +474,9 @@ public class SimpleUIOverride : MonoBehaviour
         {
             yield return null;
             
+            // Handle option navigation
+            HandleOptionNavigation();
+            
             // Copy background
             if (dialogueManager.bgImage != null && dialogueManager.bgImage.sprite != null)
             {
@@ -485,8 +528,10 @@ public class SimpleUIOverride : MonoBehaviour
                 {
                     if (newDialogueText.text != dialogueManager.bodyLabel.text)
                     {
-                        newDialogueText.text = dialogueManager.bodyLabel.text;
-                        Debug.Log($"SimpleUIOverride: Updated text to '{newDialogueText.text}' (length: {dialogueManager.bodyLabel.text.Length})");
+                        // Parse and display dialogue and options separately
+                        string fullText = dialogueManager.bodyLabel.text;
+                        ParseAndDisplayDialogue(fullText);
+                        Debug.Log($"SimpleUIOverride: Updated dialogue and options (length: {fullText.Length})");
                         
                         // Force immediate layout rebuild
                         newDialogueText.ForceMeshUpdate();
@@ -515,6 +560,267 @@ public class SimpleUIOverride : MonoBehaviour
             }
             
             firstUpdate = false;
+        }
+    }
+    
+    void ParseAndDisplayDialogue(string fullText)
+    {
+        // Split the text to find where options start
+        string[] lines = fullText.Split('\n');
+        List<string> dialogueLines = new List<string>();
+        List<string> optionLines = new List<string>();
+        
+        bool inOptions = false;
+        foreach (string line in lines)
+        {
+            // Check if this line is an option (starts with number and dot)
+            if (!inOptions && System.Text.RegularExpressions.Regex.IsMatch(line.Trim(), @"^(\s*|<[^>]+>)*\d+\."))
+            {
+                inOptions = true;
+            }
+            
+            if (inOptions)
+            {
+                optionLines.Add(line);
+            }
+            else
+            {
+                dialogueLines.Add(line);
+            }
+        }
+        
+        // Display dialogue text (without options)
+        string dialogueText = string.Join("\n", dialogueLines).TrimEnd();
+        newDialogueText.text = dialogueText;
+        Debug.Log($"SimpleUIOverride: Setting dialogue text to: '{dialogueText}' (visible: {newDialogueText.gameObject.activeInHierarchy}, color: {newDialogueText.color})");
+        
+        // Force immediate layout rebuild
+        newDialogueText.ForceMeshUpdate();
+        
+        // Update options display
+        UpdateOptionsDisplay(optionLines);
+        
+        // Debug log to check what we're parsing
+        Debug.Log($"SimpleUIOverride: Parsed dialogue with {dialogueLines.Count} dialogue lines and {optionLines.Count} option lines");
+        if (optionLines.Count > 0)
+        {
+            Debug.Log($"SimpleUIOverride: First option: '{optionLines[0]}'");
+        }
+        
+        // Reset scroll to top when text changes
+        if (dialogueScrollRect != null && dialogueScrollRect.content != null)
+        {
+            Canvas.ForceUpdateCanvases();
+            dialogueScrollRect.verticalNormalizedPosition = 1f;
+        }
+    }
+    
+    void UpdateOptionsDisplay(List<string> optionLines)
+    {
+        // Clear existing option buttons
+        foreach (var button in activeOptionButtons)
+        {
+            if (button != null)
+                Destroy(button);
+        }
+        activeOptionButtons.Clear();
+        
+        if (optionsPanel == null || optionLines.Count == 0)
+            return;
+        
+        // Parse options and create buttons
+        for (int i = 0; i < optionLines.Count; i++)
+        {
+            string optionLine = optionLines[i];
+            if (string.IsNullOrWhiteSpace(optionLine))
+                continue;
+            
+            // Check if this line contains the selection cursor
+            bool isSelected = optionLine.Contains("> ") || optionLine.Contains("<color=#FFD700>> </color>");
+            if (isSelected)
+                currentSelectedOption = i;
+            
+            // Create option button
+            GameObject optionObj = CreateOptionButton(optionLine, i, isSelected);
+            activeOptionButtons.Add(optionObj);
+        }
+    }
+    
+    GameObject CreateOptionButton(string optionText, int index, bool isSelected)
+    {
+        GameObject buttonObj = new GameObject($"Option_{index}");
+        buttonObj.transform.SetParent(optionsPanel, false);
+        
+        // Add background image
+        Image bg = buttonObj.AddComponent<Image>();
+        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        
+        // Add Button component for click handling
+        Button button = buttonObj.AddComponent<Button>();
+        button.targetGraphic = bg;
+        
+        // Set button colors for hover/press states
+        ColorBlock colors = button.colors;
+        colors.normalColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        colors.highlightedColor = new Color(1f, 0.843f, 0f, 0.7f);
+        colors.pressedColor = new Color(1f, 0.843f, 0f, 1f);
+        colors.selectedColor = new Color(1f, 0.843f, 0f, 0.9f);
+        button.colors = colors;
+        
+        // Add click handler
+        int optionIndex = index;
+        button.onClick.AddListener(() => OnOptionClicked(optionIndex));
+        
+        // Add layout element
+        LayoutElement layout = buttonObj.AddComponent<LayoutElement>();
+        layout.preferredHeight = 45;
+        layout.flexibleWidth = 1;
+        
+        // Add text
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(buttonObj.transform, false);
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = new Vector2(15, 5);
+        textRect.offsetMax = new Vector2(-15, -5);
+        
+        // Clean up the option text (remove selection markers)
+        string cleanText = optionText;
+        cleanText = System.Text.RegularExpressions.Regex.Replace(cleanText, @"<color=#FFD700>> </color>", "");
+        cleanText = cleanText.Replace("> ", "  ").Trim();
+        
+        text.text = cleanText;
+        text.fontSize = 18;
+        text.color = isSelected ? Color.black : Color.white;
+        text.alignment = TextAlignmentOptions.MidlineLeft;
+        text.enableWordWrapping = true;
+        
+        // Add subtle shadow for depth
+        if (isSelected)
+        {
+            Shadow shadow = buttonObj.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0, 0, 0, 0.3f);
+            shadow.effectDistance = new Vector2(2, -2);
+        }
+        
+        return buttonObj;
+    }
+    
+    void HandleOptionNavigation()
+    {
+        if (dialogueManager == null || activeOptionButtons.Count == 0)
+            return;
+        
+        bool needsUpdate = false;
+        
+        // Check for up/down navigation
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            currentSelectedOption = (currentSelectedOption - 1 + activeOptionButtons.Count) % activeOptionButtons.Count;
+            needsUpdate = true;
+            PlayUISound("click-sound-help-other");
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            currentSelectedOption = (currentSelectedOption + 1) % activeOptionButtons.Count;
+            needsUpdate = true;
+            PlayUISound("click-sound-help-other");
+        }
+        
+        // Update visual selection if needed
+        if (needsUpdate)
+        {
+            for (int i = 0; i < activeOptionButtons.Count; i++)
+            {
+                GameObject button = activeOptionButtons[i];
+                if (button != null)
+                {
+                    bool isSelected = (i == currentSelectedOption);
+                    Image bg = button.GetComponent<Image>();
+                    if (bg != null)
+                    {
+                        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+                    }
+                    
+                    TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text != null)
+                    {
+                        text.color = isSelected ? Color.black : Color.white;
+                    }
+                }
+            }
+        }
+    }
+    
+    void OnOptionClicked(int optionIndex)
+    {
+        Debug.Log($"SimpleUIOverride: Option {optionIndex} clicked");
+        
+        // Play selection sound
+        PlayUISound("default-choice");
+        
+        // Simulate key press for the DialogueManager
+        if (optionIndex >= 0 && optionIndex < 9)
+        {
+            // DialogueManager expects Alpha1 + optionIndex
+            // We'll need to directly call the selection method instead
+            currentSelectedOption = optionIndex;
+            
+            // Update visual selection
+            for (int i = 0; i < activeOptionButtons.Count; i++)
+            {
+                GameObject button = activeOptionButtons[i];
+                if (button != null)
+                {
+                    bool isSelected = (i == currentSelectedOption);
+                    Image bg = button.GetComponent<Image>();
+                    if (bg != null)
+                    {
+                        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+                    }
+                    
+                    TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text != null)
+                    {
+                        text.color = isSelected ? Color.black : Color.white;
+                    }
+                }
+            }
+            
+            // Trigger the selection after a brief delay to show the selection
+            StartCoroutine(TriggerSelectionAfterDelay(optionIndex));
+        }
+    }
+    
+    IEnumerator TriggerSelectionAfterDelay(int optionIndex)
+    {
+        yield return new WaitForSeconds(0.1f);
+        
+        // Find the OnOptionSelected method in DialogueManager via reflection
+        var onOptionSelectedMethod = dialogueManager.GetType().GetMethod("OnOptionSelected", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        if (onOptionSelectedMethod != null)
+        {
+            onOptionSelectedMethod.Invoke(dialogueManager, new object[] { optionIndex });
+        }
+        else
+        {
+            Debug.LogError("SimpleUIOverride: Could not find OnOptionSelected method in DialogueManager");
+        }
+    }
+    
+    void EnsureEventSystem()
+    {
+        if (FindFirstObjectByType<EventSystem>() == null)
+        {
+            GameObject eventSystemObj = new GameObject("EventSystem");
+            eventSystemObj.AddComponent<EventSystem>();
+            eventSystemObj.AddComponent<StandaloneInputModule>();
+            Debug.Log("SimpleUIOverride: Created EventSystem for UI interaction");
         }
     }
 }
