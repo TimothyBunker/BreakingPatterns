@@ -195,7 +195,7 @@ public class SimpleUIOverride : MonoBehaviour
         // Create simple text container (no scrolling)
         GameObject textContainer = new GameObject("DialogueTextContainer");
         textContainer.transform.SetParent(dialogueObj.transform, false);
-        RectTransform textRect = textContainer.GetComponent<RectTransform>();
+        RectTransform textRect = textContainer.AddComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
         textRect.offsetMin = new Vector2(20, 20);
