@@ -521,47 +521,43 @@ public class SimpleUIOverride : MonoBehaviour
     
     void ParseAndDisplayDialogue(string fullText)
     {
-        // Check if we need to update dialogue text
-        bool dialogueChanged = (fullText != lastDialogueText);
+        // Split the text to find where options start
+        string[] lines = fullText.Split('\n');
+        List<string> dialogueLines = new List<string>();
+        List<string> optionLines = new List<string>();
+        
+        bool inOptions = false;
+        foreach (string line in lines)
+        {
+            // Check if this line is an option (starts with number and dot)
+            if (!inOptions && System.Text.RegularExpressions.Regex.IsMatch(line.Trim(), @"^(\s*|<[^>]+>)*\d+\."))
+            {
+                inOptions = true;
+            }
+            
+            if (inOptions)
+            {
+                optionLines.Add(line);
+            }
+            else
+            {
+                dialogueLines.Add(line);
+            }
+        }
+        
+        // Display dialogue text (without options)
+        string dialogueText = string.Join("\n", dialogueLines).TrimEnd();
+        
+        // Check if dialogue actually changed
+        bool dialogueChanged = (dialogueText != lastDialogueText);
         
         if (dialogueChanged)
         {
-            lastDialogueText = fullText;
-            lastSelectedOption = -1; // Reset selection tracking when dialogue changes
-            
-            // Split the text to find where options start
-            string[] lines = fullText.Split('\n');
-            List<string> dialogueLines = new List<string>();
-            List<string> optionLines = new List<string>();
-            
-            bool inOptions = false;
-            foreach (string line in lines)
-            {
-                // Check if this line is an option (starts with number and dot)
-                if (!inOptions && System.Text.RegularExpressions.Regex.IsMatch(line.Trim(), @"^(\s*|<[^>]+>)*\d+\."))
-                {
-                    inOptions = true;
-                }
-                
-                if (inOptions)
-                {
-                    optionLines.Add(line);
-                }
-                else
-                {
-                    dialogueLines.Add(line);
-                }
-            }
-            
-            // Display dialogue text (without options)
-            string dialogueText = string.Join("\n", dialogueLines).TrimEnd();
+            lastDialogueText = dialogueText;
             newDialogueText.text = dialogueText;
             
             // Force immediate layout rebuild
             newDialogueText.ForceMeshUpdate();
-            
-            // Update options display
-            UpdateOptionsDisplay(optionLines);
             
             // Reset scroll to top when text changes
             if (dialogueScrollRect != null && dialogueScrollRect.content != null)
@@ -570,11 +566,9 @@ public class SimpleUIOverride : MonoBehaviour
                 dialogueScrollRect.verticalNormalizedPosition = 1f;
             }
         }
-        else
-        {
-            // Just update option highlighting if selection changed
-            UpdateOptionHighlighting();
-        }
+        
+        // Always update options to handle selection changes
+        UpdateOptionsDisplay(optionLines);
     }
     
     void UpdateOptionsDisplay(List<string> optionLines)
@@ -590,9 +584,16 @@ public class SimpleUIOverride : MonoBehaviour
         if (optionsPanel == null || optionLines.Count == 0)
             return;
         
-        // When dialogue changes, always start at option 0
-        // The DialogueManager might not have reset its optionIdx yet
-        currentSelectedOption = 0;
+        // Get the actual selected index from DialogueManager
+        int dialogueManagerSelection = 0;
+        if (dialogueManager != null)
+        {
+            var optionIdxField = dialogueManager.GetType().GetField("optionIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (optionIdxField != null)
+            {
+                dialogueManagerSelection = (int)optionIdxField.GetValue(dialogueManager);
+            }
+        }
         
         // Parse options and create buttons
         int actualOptionIndex = 0;
@@ -602,12 +603,15 @@ public class SimpleUIOverride : MonoBehaviour
             if (string.IsNullOrWhiteSpace(optionLine))
                 continue;
             
-            // Create option button with proper selection state
-            bool isSelected = (actualOptionIndex == currentSelectedOption);
+            // Check if this option is selected based on DialogueManager's index
+            bool isSelected = (actualOptionIndex == dialogueManagerSelection);
             GameObject optionObj = CreateOptionButton(optionLine, actualOptionIndex, isSelected);
             activeOptionButtons.Add(optionObj);
             actualOptionIndex++;
         }
+        
+        currentSelectedOption = dialogueManagerSelection;
+        lastSelectedOption = dialogueManagerSelection;
     }
     
     GameObject CreateOptionButton(string optionText, int index, bool isSelected)
@@ -623,12 +627,22 @@ public class SimpleUIOverride : MonoBehaviour
         Button button = buttonObj.AddComponent<Button>();
         button.targetGraphic = bg;
         
-        // Set button colors for hover/press states
+        // Set button colors - only selected button gets yellow
         ColorBlock colors = button.colors;
-        colors.normalColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        colors.highlightedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.7f) : new Color(0.3f, 0.3f, 0.3f, 0.8f);
-        colors.pressedColor = isSelected ? new Color(1f, 0.843f, 0f, 1f) : new Color(0.4f, 0.4f, 0.4f, 0.8f);
-        colors.selectedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        if (isSelected)
+        {
+            colors.normalColor = new Color(1f, 0.843f, 0f, 0.9f); // Golden yellow
+            colors.highlightedColor = new Color(1f, 0.9f, 0f, 1f); // Brighter yellow on hover
+            colors.pressedColor = new Color(1f, 0.843f, 0f, 1f);
+            colors.selectedColor = new Color(1f, 0.843f, 0f, 0.9f);
+        }
+        else
+        {
+            colors.normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark gray
+            colors.highlightedColor = new Color(0.3f, 0.3f, 0.3f, 0.9f); // Lighter gray on hover
+            colors.pressedColor = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+            colors.selectedColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        }
         colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
         button.colors = colors;
         
@@ -674,58 +688,7 @@ public class SimpleUIOverride : MonoBehaviour
         return buttonObj;
     }
     
-    void UpdateOptionHighlighting()
-    {
-        if (dialogueManager == null || activeOptionButtons.Count == 0)
-            return;
-        
-        // Get the current selected option from DialogueManager using reflection
-        int newSelectedOption = 0;
-        var optionIdxField = dialogueManager.GetType().GetField("optionIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (optionIdxField != null)
-        {
-            newSelectedOption = (int)optionIdxField.GetValue(dialogueManager);
-        }
-        
-        // Only update if selection changed
-        if (newSelectedOption != lastSelectedOption && newSelectedOption >= 0 && newSelectedOption < activeOptionButtons.Count)
-        {
-            lastSelectedOption = newSelectedOption;
-            currentSelectedOption = newSelectedOption;
-            
-            // Update button appearances
-            for (int i = 0; i < activeOptionButtons.Count; i++)
-            {
-                if (activeOptionButtons[i] != null)
-                {
-                    bool isSelected = (i == currentSelectedOption);
-                    Image bg = activeOptionButtons[i].GetComponent<Image>();
-                    if (bg != null)
-                    {
-                        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
-                    }
-                    
-                    TextMeshProUGUI text = activeOptionButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-                    if (text != null)
-                    {
-                        text.color = isSelected ? Color.black : Color.white;
-                    }
-                    
-                    // Update button color block
-                    Button button = activeOptionButtons[i].GetComponent<Button>();
-                    if (button != null)
-                    {
-                        ColorBlock colors = button.colors;
-                        colors.normalColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
-                        colors.highlightedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.7f) : new Color(0.3f, 0.3f, 0.3f, 0.8f);
-                        colors.pressedColor = isSelected ? new Color(1f, 0.843f, 0f, 1f) : new Color(0.4f, 0.4f, 0.4f, 0.8f);
-                        colors.selectedColor = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
-                        button.colors = colors;
-                    }
-                }
-            }
-        }
-    }
+    // Removed UpdateOptionHighlighting - not needed anymore
     
     void OnOptionClicked(int optionIndex)
     {
