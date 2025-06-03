@@ -254,6 +254,7 @@ public class SimpleUIOverride : MonoBehaviour
         contentRect.anchorMax = new Vector2(1, 1);
         contentRect.pivot = new Vector2(0.5f, 1);
         contentRect.anchoredPosition = Vector2.zero;
+        contentRect.sizeDelta = new Vector2(0, 100); // Set initial height, width from anchors
         
         // Create text with proper layout settings
         newDialogueText = contentObj.AddComponent<TextMeshProUGUI>();
@@ -491,10 +492,9 @@ public class SimpleUIOverride : MonoBehaviour
                         newDialogueText.ForceMeshUpdate();
                         
                         // Reset scroll to top when text changes
-                        if (dialogueScrollRect != null)
+                        if (dialogueScrollRect != null && dialogueScrollRect.content != null)
                         {
                             // Force layout update before scrolling
-                            LayoutRebuilder.ForceRebuildLayoutImmediate(dialogueScrollRect.content);
                             Canvas.ForceUpdateCanvases();
                             
                             // Reset scroll position
