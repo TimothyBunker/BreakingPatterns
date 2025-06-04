@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
+[DefaultExecutionOrder(-100)] // Execute before other scripts
 public class SimpleUIFix : MonoBehaviour
 {
     [Header("References")]
@@ -57,12 +58,59 @@ public class SimpleUIFix : MonoBehaviour
     
     void SetupDialogueManagerReferences()
     {
-        // Find DialogueManager early and set up its references
-        dialogueManager = FindFirstObjectByType<DialogueManager>();
-        if (dialogueManager != null)
+        // Find ALL DialogueManagers and set up their references
+        DialogueManager[] allDialogueManagers = FindObjectsByType<DialogueManager>(FindObjectsSortMode.None);
+        foreach (var dm in allDialogueManagers)
         {
-            CreateDummyUIForDialogueManager();
+            SetupSingleDialogueManager(dm);
         }
+        
+        // Set the first one as our main reference
+        if (allDialogueManagers.Length > 0)
+        {
+            dialogueManager = allDialogueManagers[0];
+        }
+        
+        Debug.Log($"SimpleUIFix: Set up {allDialogueManagers.Length} DialogueManager(s)");
+    }
+    
+    void SetupSingleDialogueManager(DialogueManager dm)
+    {
+        // Create a hidden canvas for this DialogueManager's UI references
+        GameObject dummyCanvas = new GameObject($"DummyCanvas_{dm.name}");
+        Canvas canvas = dummyCanvas.AddComponent<Canvas>();
+        canvas.enabled = false; // Hide it
+        
+        // Create dummy UI elements for this specific DialogueManager
+        if (dm.bodyLabel == null)
+        {
+            GameObject textObj = new GameObject("DummyText");
+            textObj.transform.SetParent(dummyCanvas.transform, false);
+            dm.bodyLabel = textObj.AddComponent<TextMeshProUGUI>();
+        }
+        
+        if (dm.bgImage == null)
+        {
+            GameObject bgObj = new GameObject("DummyBG");
+            bgObj.transform.SetParent(dummyCanvas.transform, false);
+            dm.bgImage = bgObj.AddComponent<Image>();
+        }
+        
+        if (dm.charLeftImage == null)
+        {
+            GameObject charObj = new GameObject("DummyCharLeft");
+            charObj.transform.SetParent(dummyCanvas.transform, false);
+            dm.charLeftImage = charObj.AddComponent<Image>();
+        }
+        
+        if (dm.charRightImage == null)
+        {
+            GameObject charObj = new GameObject("DummyCharRight");
+            charObj.transform.SetParent(dummyCanvas.transform, false);
+            dm.charRightImage = charObj.AddComponent<Image>();
+        }
+        
+        Debug.Log($"SimpleUIFix: Created dummy UI for DialogueManager '{dm.name}'");
     }
     
     void CreateUI()
@@ -141,52 +189,13 @@ public class SimpleUIFix : MonoBehaviour
     
     void TakeOverDialogueManager()
     {
-        // Create dummy UI elements for DialogueManager to prevent errors
-        CreateDummyUIForDialogueManager();
-        
         // Disable DialogueManager's Update to prevent interference
-        dialogueManager.enabled = false;
+        if (dialogueManager != null)
+        {
+            dialogueManager.enabled = false;
+        }
         
         Debug.Log("SimpleUIFix: Took over DialogueManager");
-    }
-    
-    void CreateDummyUIForDialogueManager()
-    {
-        // Create a hidden canvas for DialogueManager's UI references
-        GameObject dummyCanvas = new GameObject("DummyDialogueCanvas");
-        Canvas canvas = dummyCanvas.AddComponent<Canvas>();
-        canvas.enabled = false; // Hide it
-        
-        // Create dummy UI elements
-        if (dialogueManager.bodyLabel == null)
-        {
-            GameObject textObj = new GameObject("DummyText");
-            textObj.transform.SetParent(dummyCanvas.transform, false);
-            dialogueManager.bodyLabel = textObj.AddComponent<TextMeshProUGUI>();
-        }
-        
-        if (dialogueManager.bgImage == null)
-        {
-            GameObject bgObj = new GameObject("DummyBG");
-            bgObj.transform.SetParent(dummyCanvas.transform, false);
-            dialogueManager.bgImage = bgObj.AddComponent<Image>();
-        }
-        
-        if (dialogueManager.charLeftImage == null)
-        {
-            GameObject charObj = new GameObject("DummyCharLeft");
-            charObj.transform.SetParent(dummyCanvas.transform, false);
-            dialogueManager.charLeftImage = charObj.AddComponent<Image>();
-        }
-        
-        if (dialogueManager.charRightImage == null)
-        {
-            GameObject charObj = new GameObject("DummyCharRight");
-            charObj.transform.SetParent(dummyCanvas.transform, false);
-            dialogueManager.charRightImage = charObj.AddComponent<Image>();
-        }
-        
-        Debug.Log("SimpleUIFix: Created dummy UI elements for DialogueManager");
     }
     
     void Update()
