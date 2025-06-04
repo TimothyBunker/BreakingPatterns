@@ -56,11 +56,13 @@ public class GameManager : MonoBehaviour
         if (feedbackSystem == null)
             feedbackSystem = GetComponent<FeedbackSystem>() ?? gameObject.AddComponent<FeedbackSystem>();
         
-        // Disable the complex UI systems for now - just use SimpleUIOverride
-        // if (uiManager == null)
-        //     uiManager = FindFirstObjectByType<UIManager>() ?? new GameObject("UIManager").AddComponent<UIManager>();
-        // if (uiIntegration == null)
-        //     uiIntegration = FindFirstObjectByType<DialogueUIIntegration>() ?? new GameObject("DialogueUIIntegration").AddComponent<DialogueUIIntegration>();
+        // Create AudioManager if missing
+        if (AudioManager.Instance == null)
+        {
+            GameObject audioObj = new GameObject("AudioManager");
+            audioObj.AddComponent<AudioManager>();
+            Debug.Log("GameManager: Created AudioManager");
+        }
             
         // Add UI debugger for development
         #if UNITY_EDITOR
