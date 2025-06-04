@@ -226,12 +226,15 @@ public class SimpleUIFix : MonoBehaviour
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
         
-        // Find background image (should be in SimpleUIFix canvas if it exists)
-        var bgObj = GameObject.Find("Background");
-        if (bgObj != null)
-        {
-            backgroundImage = bgObj.GetComponent<Image>();
-        }
+        // Create background image for game backgrounds
+        GameObject bgObj = new GameObject("GameBackground");
+        bgObj.transform.SetParent(mainCanvas.transform, false);
+        backgroundImage = bgObj.AddComponent<Image>();
+        RectTransform bgRect = bgObj.GetComponent<RectTransform>();
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.sizeDelta = Vector2.zero;
+        bgObj.transform.SetAsFirstSibling(); // Put background behind everything
         
         // Character images will be handled by the background sprites
         // We'll just create dummy ones for compatibility
@@ -347,32 +350,57 @@ public class SimpleUIFix : MonoBehaviour
     
     void ShowCurrentDialogue()
     {
+        if (dialogueManager == null)
+        {
+            Debug.LogError("SimpleUIFix: DialogueManager is null!");
+            return;
+        }
+        
         // Get current node using reflection
         var nodeIdxField = dialogueManager.GetType().GetField("nodeIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var nodesField = dialogueManager.GetType().GetField("nodes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
-        if (nodeIdxField == null || nodesField == null) return;
+        if (nodeIdxField == null || nodesField == null)
+        {
+            Debug.LogError("SimpleUIFix: Could not find nodeIdx or nodes fields in DialogueManager");
+            return;
+        }
         
         int nodeIdx = (int)nodeIdxField.GetValue(dialogueManager);
         var nodes = nodesField.GetValue(dialogueManager) as List<DialogueNode>;
         
-        if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count) return;
+        if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count)
+        {
+            Debug.LogError($"SimpleUIFix: Invalid node access. nodeIdx={nodeIdx}, nodes.Count={nodes?.Count ?? 0}");
+            return;
+        }
         
         var currentNode = nodes[nodeIdx];
         
+        if (currentNode == null)
+        {
+            Debug.LogError($"SimpleUIFix: Current node at index {nodeIdx} is null");
+            return;
+        }
+        
         // Update display
-        dialogueText.text = currentNode.body;
+        if (dialogueText != null)
+            dialogueText.text = currentNode.body;
+        else
+            Debug.LogError("SimpleUIFix: dialogueText is null!");
         
         // Update background
-        if (!string.IsNullOrEmpty(currentNode.background))
+        if (!string.IsNullOrEmpty(currentNode.background) && backgroundImage != null)
         {
             Sprite bgSprite = Resources.Load<Sprite>("Backgrounds/" + currentNode.background);
             if (bgSprite != null)
                 backgroundImage.sprite = bgSprite;
+            else
+                Debug.LogWarning($"SimpleUIFix: Background sprite not found: Backgrounds/{currentNode.background}");
         }
             
         // Update characters
-        if (!string.IsNullOrEmpty(currentNode.charLeft))
+        if (!string.IsNullOrEmpty(currentNode.charLeft) && leftCharacter != null)
         {
             Sprite charSprite = Resources.Load<Sprite>("Characters/" + currentNode.charLeft);
             if (charSprite != null)
@@ -383,15 +411,17 @@ public class SimpleUIFix : MonoBehaviour
             else
             {
                 leftCharacter.color = Color.clear;
+                Debug.LogWarning($"SimpleUIFix: Character sprite not found: Characters/{currentNode.charLeft}");
             }
         }
-        else
+        else if (leftCharacter != null)
         {
             leftCharacter.color = Color.clear;
         }
         
         // Right character (DialogueNode doesn't have charRight, so keep it hidden)
-        rightCharacter.color = Color.clear;
+        if (rightCharacter != null)
+            rightCharacter.color = Color.clear;
         
         // Filter options based on relationship requirements (like DialogueManager does)
         var filteredOptions = new List<DialogueOption>();
