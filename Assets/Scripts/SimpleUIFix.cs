@@ -175,8 +175,8 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(canvasObj.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.2f, 0.05f);
-        optionsPanel.anchorMax = new Vector2(0.8f, 0.3f);
+        optionsPanel.anchorMin = new Vector2(0.2f, 0.15f);
+        optionsPanel.anchorMax = new Vector2(0.8f, 0.45f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 10;
@@ -216,8 +216,8 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.1f, 0.05f);
-        optionsPanel.anchorMax = new Vector2(0.9f, 0.25f);
+        optionsPanel.anchorMin = new Vector2(0.1f, 0.15f);
+        optionsPanel.anchorMax = new Vector2(0.9f, 0.45f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 10;
@@ -392,17 +392,23 @@ public class SimpleUIFix : MonoBehaviour
         // Update background
         if (!string.IsNullOrEmpty(currentNode.background) && backgroundImage != null)
         {
-            Sprite bgSprite = Resources.Load<Sprite>("Backgrounds/" + currentNode.background);
+            // Try both paths since backgrounds exist in both locations
+            Sprite bgSprite = Resources.Load<Sprite>("Sprites/Backgrounds/" + currentNode.background);
+            if (bgSprite == null)
+            {
+                bgSprite = Resources.Load<Sprite>("Backgrounds/" + currentNode.background);
+            }
+            
             if (bgSprite != null)
                 backgroundImage.sprite = bgSprite;
             else
-                Debug.LogWarning($"SimpleUIFix: Background sprite not found: Backgrounds/{currentNode.background}");
+                Debug.LogWarning($"SimpleUIFix: Background sprite not found in either Sprites/Backgrounds/ or Backgrounds/: {currentNode.background}");
         }
             
         // Update characters
         if (!string.IsNullOrEmpty(currentNode.charLeft) && leftCharacter != null)
         {
-            Sprite charSprite = Resources.Load<Sprite>("Characters/" + currentNode.charLeft);
+            Sprite charSprite = Resources.Load<Sprite>("Sprites/Characters/" + currentNode.charLeft);
             if (charSprite != null)
             {
                 leftCharacter.sprite = charSprite;
@@ -411,7 +417,7 @@ public class SimpleUIFix : MonoBehaviour
             else
             {
                 leftCharacter.color = Color.clear;
-                Debug.LogWarning($"SimpleUIFix: Character sprite not found: Characters/{currentNode.charLeft}");
+                Debug.LogWarning($"SimpleUIFix: Character sprite not found: Sprites/Characters/{currentNode.charLeft}");
             }
         }
         else if (leftCharacter != null)
