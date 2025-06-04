@@ -185,7 +185,7 @@ public class SimpleUIOverride : MonoBehaviour
         newDialoguePanel = dialogueObj.AddComponent<RectTransform>();
         
         Image panelBg = dialogueObj.AddComponent<Image>();
-        panelBg.color = new Color(0, 0, 0, 0.9f);
+        panelBg.color = new Color(0, 0, 0, 0.7f); // Less opaque
         
         newDialoguePanel.anchorMin = new Vector2(0.25f, 0.45f); // Narrower and centered
         newDialoguePanel.anchorMax = new Vector2(0.75f, 0.65f); // Smaller dialogue area
@@ -230,7 +230,7 @@ public class SimpleUIOverride : MonoBehaviour
         
         // Add semi-transparent background
         Image optionsBg = optionsObj.AddComponent<Image>();
-        optionsBg.color = new Color(0, 0, 0, 0.7f);
+        optionsBg.color = new Color(0, 0, 0, 0.5f); // Even less opaque
         
         // Add vertical layout for options with tighter spacing
         VerticalLayoutGroup optionsLayout = optionsObj.AddComponent<VerticalLayoutGroup>();
@@ -251,7 +251,7 @@ public class SimpleUIOverride : MonoBehaviour
         statsRect.anchorMax = new Vector2(0.85f, 0.98f);
         
         Image statsBg = statsPanel.AddComponent<Image>();
-        statsBg.color = new Color(0, 0, 0, 0.8f);
+        statsBg.color = new Color(0, 0, 0, 0.6f); // Less opaque
         
         HorizontalLayoutGroup statsLayout = statsPanel.AddComponent<HorizontalLayoutGroup>();
         statsLayout.spacing = 30;
@@ -352,22 +352,38 @@ public class SimpleUIOverride : MonoBehaviour
     
     void HideOldButtons()
     {
-        // Find and hide any dialogue text or option elements not created by us
-        var allTexts = FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None);
-        foreach (var text in allTexts)
+        // More aggressive hiding of old UI elements
+        if (dialogueManager != null && dialogueManager.bodyLabel != null)
         {
-            if (text == null || text == newDialogueText)
-                continue;
-                
-            if (text.transform == null || transform == null || text.transform.IsChildOf(transform))
-                continue;
-                
-            if (!string.IsNullOrEmpty(text.text) && 
-                (text.text.Contains("Start a meth empire") || text.text.Contains("Stick to teaching") || 
-                 text.text.Contains("After receiving your cancer")))
+            // Hide the entire bodyLabel container
+            var bodyParent = dialogueManager.bodyLabel.transform.parent;
+            if (bodyParent != null)
             {
-                if (text.gameObject != null)
-                    text.gameObject.SetActive(false);
+                bodyParent.gameObject.SetActive(false);
+            }
+            
+            // Also hide bodyLabel itself
+            dialogueManager.bodyLabel.gameObject.SetActive(false);
+        }
+        
+        // Find and hide any UI elements that look like old dialogue/options
+        var allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+        foreach (var canvas in allCanvases)
+        {
+            if (canvas == mainCanvas) continue;
+            
+            var texts = canvas.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var text in texts)
+            {
+                if (text != null && !string.IsNullOrEmpty(text.text))
+                {
+                    if (text.text.Contains("1.") || text.text.Contains("2.") || 
+                        text.text.Contains("Start a meth") || text.text.Contains("Stick to teaching") ||
+                        text.text.Contains("After receiving"))
+                    {
+                        text.transform.parent?.gameObject.SetActive(false);
+                    }
+                }
             }
         }
     }
@@ -544,29 +560,29 @@ public class SimpleUIOverride : MonoBehaviour
         GameObject buttonObj = new GameObject($"Option_{index}");
         buttonObj.transform.SetParent(optionsPanel, false);
         
-        // Add background image
+        // Add background image with less opacity
         Image bg = buttonObj.AddComponent<Image>();
-        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.9f) : new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        bg.color = isSelected ? new Color(1f, 0.843f, 0f, 0.7f) : new Color(0.1f, 0.1f, 0.1f, 0.6f);
         
         // Add Button component for click handling
         Button button = buttonObj.AddComponent<Button>();
         button.targetGraphic = bg;
         
-        // Set button colors - only selected button gets yellow
+        // Set button colors - more subtle
         ColorBlock colors = button.colors;
         if (isSelected)
         {
-            colors.normalColor = new Color(1f, 0.843f, 0f, 0.9f); // Golden yellow
-            colors.highlightedColor = new Color(1f, 0.9f, 0f, 1f); // Brighter yellow on hover
-            colors.pressedColor = new Color(1f, 0.843f, 0f, 1f);
-            colors.selectedColor = new Color(1f, 0.843f, 0f, 0.9f);
+            colors.normalColor = new Color(1f, 0.843f, 0f, 0.7f); // Less opaque golden
+            colors.highlightedColor = new Color(1f, 0.9f, 0f, 0.8f); // Subtle hover
+            colors.pressedColor = new Color(1f, 0.843f, 0f, 0.8f);
+            colors.selectedColor = new Color(1f, 0.843f, 0f, 0.7f);
         }
         else
         {
-            colors.normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark gray
-            colors.highlightedColor = new Color(0.3f, 0.3f, 0.3f, 0.9f); // Lighter gray on hover
-            colors.pressedColor = new Color(0.15f, 0.15f, 0.15f, 0.9f);
-            colors.selectedColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+            colors.normalColor = new Color(0.1f, 0.1f, 0.1f, 0.6f); // Less opaque dark
+            colors.highlightedColor = new Color(0.2f, 0.2f, 0.2f, 0.7f); // Subtle hover
+            colors.pressedColor = new Color(0.05f, 0.05f, 0.05f, 0.7f);
+            colors.selectedColor = new Color(0.1f, 0.1f, 0.1f, 0.6f);
         }
         colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
         button.colors = colors;
@@ -619,8 +635,15 @@ public class SimpleUIOverride : MonoBehaviour
     {
         Debug.Log($"SimpleUIOverride: Option {optionIndex} clicked");
         
-        // Play selection sound
-        PlayUISound("default-choice");
+        // Play selection sound using AudioManager
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDefaultChoiceSound();
+        }
+        else
+        {
+            PlayUISound("default-choice");
+        }
         
         // Set the optionIdx in DialogueManager using reflection
         if (dialogueManager != null && optionIndex >= 0 && optionIndex < activeOptionButtons.Count)
