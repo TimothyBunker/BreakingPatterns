@@ -36,6 +36,7 @@ public class EarlySetup : MonoBehaviour
         GameObject canvasObj = new GameObject("EarlySetupCanvas");
         mainCanvas = canvasObj.AddComponent<Canvas>();
         mainCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        mainCanvas.sortingOrder = 100; // High sorting order to be in front
         canvasObj.AddComponent<CanvasScaler>();
         canvasObj.AddComponent<GraphicRaycaster>();
         
@@ -57,12 +58,16 @@ public class EarlySetup : MonoBehaviour
         statsPanel.transform.SetParent(mainCanvas.transform, false);
         
         RectTransform statsRect = statsPanel.AddComponent<RectTransform>();
-        statsRect.anchorMin = new Vector2(0.1f, 0.92f);
-        statsRect.anchorMax = new Vector2(0.9f, 0.98f);
+        statsRect.anchorMin = new Vector2(0.05f, 0.88f);
+        statsRect.anchorMax = new Vector2(0.95f, 0.98f);
         
         // Add background
         Image statsBg = statsPanel.AddComponent<Image>();
-        statsBg.color = new Color(0, 0, 0, 0.7f);
+        statsBg.color = new Color(0, 0, 0, 0.9f); // More opaque
+        
+        // Add canvas group for proper layering
+        CanvasGroup statsGroup = statsPanel.AddComponent<CanvasGroup>();
+        statsGroup.blocksRaycasts = false; // Don't block clicks
         
         // Add layout group
         HorizontalLayoutGroup layout = statsPanel.AddComponent<HorizontalLayoutGroup>();
@@ -109,12 +114,16 @@ public class EarlySetup : MonoBehaviour
         dialoguePanel.transform.SetParent(mainCanvas.transform, false);
         
         RectTransform dialogueRect = dialoguePanel.AddComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.25f, 0.45f);
-        dialogueRect.anchorMax = new Vector2(0.75f, 0.65f);
+        dialogueRect.anchorMin = new Vector2(0.1f, 0.3f);
+        dialogueRect.anchorMax = new Vector2(0.9f, 0.7f);
         
         // Add background
         Image dialogueBg = dialoguePanel.AddComponent<Image>();
-        dialogueBg.color = new Color(0, 0, 0, 0.8f);
+        dialogueBg.color = new Color(0, 0, 0, 0.85f); // More opaque
+        
+        // Add canvas group for proper layering
+        CanvasGroup dialogueGroup = dialoguePanel.AddComponent<CanvasGroup>();
+        dialogueGroup.blocksRaycasts = false; // Don't block clicks
         
         // Create text container inside the panel
         GameObject textContainer = new GameObject("TextContainer");

@@ -42,8 +42,18 @@ public class SimpleUIFix : MonoBehaviour
             return;
         }
         
-        // Create our UI
-        CreateUI();
+        // Check if EarlySetup canvas exists, if not create our own
+        var earlySetupCanvas = GameObject.Find("EarlySetupCanvas");
+        if (earlySetupCanvas != null)
+        {
+            mainCanvas = earlySetupCanvas.GetComponent<Canvas>();
+            Debug.Log("SimpleUIFix: Using EarlySetup canvas");
+            SetupUIReferencesFromEarlySetup();
+        }
+        else
+        {
+            CreateUI();
+        }
         
         // Take over DialogueManager
         TakeOverDialogueManager();
@@ -121,6 +131,7 @@ public class SimpleUIFix : MonoBehaviour
         GameObject canvasObj = new GameObject("FixedCanvas");
         mainCanvas = canvasObj.AddComponent<Canvas>();
         mainCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        mainCanvas.sortingOrder = 50; // Lower than EarlySetup canvas
         canvasObj.AddComponent<CanvasScaler>();
         canvasObj.AddComponent<GraphicRaycaster>();
         
@@ -132,7 +143,7 @@ public class SimpleUIFix : MonoBehaviour
             eventSystemObj.AddComponent<StandaloneInputModule>();
         }
         
-        // Background
+        // Background (game background only, not UI background)
         GameObject bgObj = new GameObject("Background");
         bgObj.transform.SetParent(canvasObj.transform, false);
         backgroundImage = bgObj.AddComponent<Image>();
@@ -140,12 +151,13 @@ public class SimpleUIFix : MonoBehaviour
         bgRect.anchorMin = Vector2.zero;
         bgRect.anchorMax = Vector2.one;
         bgRect.sizeDelta = Vector2.zero;
+        bgObj.transform.SetAsFirstSibling(); // Put background behind everything
         
         // Characters
         CreateCharacter(ref leftCharacter, "LeftCharacter", new Vector2(-0.1f, 0f), new Vector2(0.3f, 0.85f));
         CreateCharacter(ref rightCharacter, "RightCharacter", new Vector2(0.7f, 0f), new Vector2(1.1f, 0.85f));
         
-        // Dialogue text
+        // Dialogue text (positioned to not overlap with stats)
         GameObject dialogueObj = new GameObject("DialogueText");
         dialogueObj.transform.SetParent(canvasObj.transform, false);
         dialogueText = dialogueObj.AddComponent<TextMeshProUGUI>();
@@ -154,17 +166,17 @@ public class SimpleUIFix : MonoBehaviour
         dialogueText.alignment = TextAlignmentOptions.TopLeft;
         
         RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.2f, 0.6f);
-        dialogueRect.anchorMax = new Vector2(0.8f, 0.9f);
+        dialogueRect.anchorMin = new Vector2(0.15f, 0.35f);
+        dialogueRect.anchorMax = new Vector2(0.85f, 0.65f);
         dialogueRect.offsetMin = new Vector2(20, 20);
         dialogueRect.offsetMax = new Vector2(-20, -20);
         
-        // Options panel
+        // Options panel (positioned below dialogue)
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(canvasObj.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.2f, 0.1f);
-        optionsPanel.anchorMax = new Vector2(0.8f, 0.6f);
+        optionsPanel.anchorMin = new Vector2(0.2f, 0.05f);
+        optionsPanel.anchorMax = new Vector2(0.8f, 0.3f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 10;
@@ -174,6 +186,59 @@ public class SimpleUIFix : MonoBehaviour
         layout.childForceExpandWidth = true;
         
         Debug.Log("SimpleUIFix: UI created successfully");
+    }
+    
+    void SetupUIReferencesFromEarlySetup()
+    {
+        // Find EarlySetup's dialogue panel and use it
+        var dialoguePanel = GameObject.Find("DialoguePanel");
+        if (dialoguePanel != null)
+        {
+            var textContainer = dialoguePanel.transform.Find("TextContainer");
+            if (textContainer != null)
+            {
+                // Create dialogue text in the text container
+                GameObject dialogueObj = new GameObject("DialogueText");
+                dialogueObj.transform.SetParent(textContainer, false);
+                dialogueText = dialogueObj.AddComponent<TextMeshProUGUI>();
+                dialogueText.fontSize = 20;
+                dialogueText.color = Color.white;
+                dialogueText.alignment = TextAlignmentOptions.TopLeft;
+                
+                RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
+                dialogueRect.anchorMin = Vector2.zero;
+                dialogueRect.anchorMax = Vector2.one;
+                dialogueRect.sizeDelta = Vector2.zero;
+            }
+        }
+        
+        // Create options panel below the dialogue panel
+        GameObject optionsPanelObj = new GameObject("OptionsPanel");
+        optionsPanelObj.transform.SetParent(mainCanvas.transform, false);
+        optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
+        optionsPanel.anchorMin = new Vector2(0.1f, 0.05f);
+        optionsPanel.anchorMax = new Vector2(0.9f, 0.25f);
+        
+        VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 10;
+        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.childControlHeight = false;
+        layout.childControlWidth = true;
+        layout.childForceExpandWidth = true;
+        
+        // Find background image (should be in SimpleUIFix canvas if it exists)
+        var bgObj = GameObject.Find("Background");
+        if (bgObj != null)
+        {
+            backgroundImage = bgObj.GetComponent<Image>();
+        }
+        
+        // Character images will be handled by the background sprites
+        // We'll just create dummy ones for compatibility
+        CreateCharacter(ref leftCharacter, "LeftCharacter", new Vector2(-0.1f, 0f), new Vector2(0.3f, 0.85f));
+        CreateCharacter(ref rightCharacter, "RightCharacter", new Vector2(0.7f, 0f), new Vector2(1.1f, 0.85f));
+        
+        Debug.Log("SimpleUIFix: Set up UI references from EarlySetup");
     }
     
     void CreateCharacter(ref Image character, string name, Vector2 anchorMin, Vector2 anchorMax)
