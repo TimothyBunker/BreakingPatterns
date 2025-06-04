@@ -23,6 +23,12 @@ public class SimpleUIFix : MonoBehaviour
     private int currentSelection = 0;
     private List<DialogueOption> currentOptions;
     
+    void Awake()
+    {
+        // Execute early to set up DialogueManager before it initializes
+        SetupDialogueManagerReferences();
+    }
+    
     void Start()
     {
         // Find DialogueManager
@@ -39,8 +45,24 @@ public class SimpleUIFix : MonoBehaviour
         // Take over DialogueManager
         TakeOverDialogueManager();
         
-        // Show first dialogue
+        // Wait a frame then show dialogue
+        StartCoroutine(ShowDialogueAfterFrame());
+    }
+    
+    System.Collections.IEnumerator ShowDialogueAfterFrame()
+    {
+        yield return null; // Wait one frame
         ShowCurrentDialogue();
+    }
+    
+    void SetupDialogueManagerReferences()
+    {
+        // Find DialogueManager early and set up its references
+        dialogueManager = FindFirstObjectByType<DialogueManager>();
+        if (dialogueManager != null)
+        {
+            CreateDummyUIForDialogueManager();
+        }
     }
     
     void CreateUI()

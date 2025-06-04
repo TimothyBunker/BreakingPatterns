@@ -64,14 +64,14 @@ public class GameManager : MonoBehaviour
             Debug.Log("GameManager: Created AudioManager");
         }
             
-        // Add UI debugger for development
-        #if UNITY_EDITOR
-        var debugger = FindFirstObjectByType<UILayerDebugger>();
-        if (debugger == null)
-        {
-            new GameObject("UILayerDebugger").AddComponent<UILayerDebugger>();
-        }
-        #endif
+        // Disable UI debugger for now to prevent errors
+        // #if UNITY_EDITOR
+        // var debugger = FindFirstObjectByType<UILayerDebugger>();
+        // if (debugger == null)
+        // {
+        //     new GameObject("UILayerDebugger").AddComponent<UILayerDebugger>();
+        // }
+        // #endif
         
         // Add simple UI fix as the main UI system
         StartCoroutine(AddSimpleUIFix());
