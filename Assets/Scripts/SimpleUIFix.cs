@@ -166,8 +166,8 @@ public class SimpleUIFix : MonoBehaviour
         dialogueText.alignment = TextAlignmentOptions.Center;
         
         RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.25f, 0.47f);
-        dialogueRect.anchorMax = new Vector2(0.75f, 0.63f);
+        dialogueRect.anchorMin = new Vector2(0.35f, 0.47f);
+        dialogueRect.anchorMax = new Vector2(0.65f, 0.2f);
         dialogueRect.offsetMin = new Vector2(10, 10);
         dialogueRect.offsetMax = new Vector2(-10, -10);
         
