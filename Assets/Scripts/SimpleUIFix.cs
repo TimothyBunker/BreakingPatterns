@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class SimpleUIFix : MonoBehaviour
 {
@@ -179,63 +180,121 @@ public class SimpleUIFix : MonoBehaviour
         
         PlaySound("ui-select");
         
-        // Apply the choice
+        // Apply the choice using GameManager's RNG system
         var option = currentOptions[index];
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.ApplyChoice(option.profit, option.relationships, option.suspicion);
+            GameManager.Instance.ApplyChoiceWithRNG(option);
         }
         
-        // Move to next dialogue
-        var nextNodeField = dialogueManager.GetType().GetField("nextNode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (nextNodeField != null && option.nextNodeId != -1)
+        // Navigate to next node
+        if (option.nextNode >= 0)
         {
-            nextNodeField.SetValue(dialogueManager, option.nextNodeId);
+            var nodeIdxField = dialogueManager.GetType().GetField("nodeIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var nodesField = dialogueManager.GetType().GetField("nodes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (nodeIdxField != null && nodesField != null)
+            {
+                var nodes = nodesField.GetValue(dialogueManager) as List<DialogueNode>;
+                if (nodes != null && option.nextNode < nodes.Count)
+                {
+                    nodeIdxField.SetValue(dialogueManager, option.nextNode);
+                    ShowCurrentDialogue();
+                }
+                else
+                {
+                    // End of story
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("EndScene");
+                }
+            }
         }
-        
-        // Show next dialogue
-        ShowCurrentDialogue();
+        else
+        {
+            // End of story
+            UnityEngine.SceneManagement.SceneManager.LoadScene("EndScene");
+        }
     }
     
     void ShowCurrentDialogue()
     {
         // Get current node using reflection
-        var currentNodeField = dialogueManager.GetType().GetField("currentNode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (currentNodeField == null) return;
+        var nodeIdxField = dialogueManager.GetType().GetField("nodeIdx", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var nodesField = dialogueManager.GetType().GetField("nodes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
-        var currentNode = currentNodeField.GetValue(dialogueManager) as DialogueNode;
-        if (currentNode == null) return;
+        if (nodeIdxField == null || nodesField == null) return;
+        
+        int nodeIdx = (int)nodeIdxField.GetValue(dialogueManager);
+        var nodes = nodesField.GetValue(dialogueManager) as List<DialogueNode>;
+        
+        if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count) return;
+        
+        var currentNode = nodes[nodeIdx];
         
         // Update display
         dialogueText.text = currentNode.body;
         
         // Update background
-        if (currentNode.backgroundSprite != null)
-            backgroundImage.sprite = currentNode.backgroundSprite;
+        if (!string.IsNullOrEmpty(currentNode.background))
+        {
+            Sprite bgSprite = Resources.Load<Sprite>("Backgrounds/" + currentNode.background);
+            if (bgSprite != null)
+                backgroundImage.sprite = bgSprite;
+        }
             
         // Update characters
-        if (currentNode.charLeftSprite != null)
+        if (!string.IsNullOrEmpty(currentNode.charLeft))
         {
-            leftCharacter.sprite = currentNode.charLeftSprite;
-            leftCharacter.color = Color.white;
+            Sprite charSprite = Resources.Load<Sprite>("Characters/" + currentNode.charLeft);
+            if (charSprite != null)
+            {
+                leftCharacter.sprite = charSprite;
+                leftCharacter.color = Color.white;
+            }
+            else
+            {
+                leftCharacter.color = Color.clear;
+            }
         }
         else
         {
             leftCharacter.color = Color.clear;
         }
         
-        if (currentNode.charRightSprite != null)
+        // Right character (DialogueNode doesn't have charRight, so keep it hidden)
+        rightCharacter.color = Color.clear;
+        
+        // Filter options based on relationship requirements (like DialogueManager does)
+        var filteredOptions = new List<DialogueOption>();
+        foreach (var opt in currentNode.options)
         {
-            rightCharacter.sprite = currentNode.charRightSprite;
-            rightCharacter.color = Color.white;
-        }
-        else
-        {
-            rightCharacter.color = Color.clear;
+            if (opt == null) continue;
+            
+            // Check relationship requirements
+            bool meetsReqs = true;
+            if (GameManager.Instance != null)
+            {
+                meetsReqs = GameManager.Instance.Relationships >= opt.minRelationship &&
+                           GameManager.Instance.Relationships <= opt.maxRelationship;
+            }
+                           
+            // Add visible options or hidden options that meet requirements
+            if (!opt.isHidden || meetsReqs)
+            {
+                filteredOptions.Add(opt);
+            }
         }
         
-        // Update options
-        currentOptions = currentNode.options;
+        // Ensure we have at least one option
+        if (filteredOptions.Count == 0)
+        {
+            filteredOptions.Add(new DialogueOption 
+            { 
+                text = "Continue...", 
+                nextNode = -1 
+            });
+        }
+        
+        currentOptions = filteredOptions;
         currentSelection = 0;
         CreateOptionButtons();
     }
