@@ -73,22 +73,22 @@ public class GameManager : MonoBehaviour
         }
         #endif
         
-        // Add simple UI override as a fallback
-        StartCoroutine(AddSimpleOverride());
+        // Add simple UI fix as the main UI system
+        StartCoroutine(AddSimpleUIFix());
 
         UpdateUI(); // Update UI with initial values
     }
     
-    System.Collections.IEnumerator AddSimpleOverride()
+    System.Collections.IEnumerator AddSimpleUIFix()
     {
         yield return new WaitForSeconds(0.1f);
         
-        // Always add simple override as the main UI system
-        var simpleOverride = FindFirstObjectByType<SimpleUIOverride>();
-        if (simpleOverride == null)
+        // Always add simple UI fix as the main UI system
+        var simpleUIFix = FindFirstObjectByType<SimpleUIFix>();
+        if (simpleUIFix == null)
         {
-            Debug.Log("GameManager: Creating SimpleUIOverride");
-            new GameObject("SimpleUIOverride").AddComponent<SimpleUIOverride>();
+            Debug.Log("GameManager: Creating SimpleUIFix");
+            new GameObject("SimpleUIFix").AddComponent<SimpleUIFix>();
         }
     }
 
