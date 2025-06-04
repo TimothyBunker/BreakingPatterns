@@ -27,14 +27,46 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject); // Keep AudioManager across scenes
 
-        // Basic setup validation
+        // Auto-create audio sources if not assigned
         if (musicSource == null)
         {
-            Debug.LogError("AudioManager: Music Source is not assigned!");
+            GameObject musicObj = new GameObject("MusicSource");
+            musicObj.transform.SetParent(transform);
+            musicSource = musicObj.AddComponent<AudioSource>();
+            musicSource.loop = true;
+            musicSource.volume = 0.5f;
+            Debug.Log("AudioManager: Created MusicSource");
         }
         if (sfxSource == null)
         {
-            Debug.LogError("AudioManager: SFX Source is not assigned!");
+            GameObject sfxObj = new GameObject("SFXSource");
+            sfxObj.transform.SetParent(transform);
+            sfxSource = sfxObj.AddComponent<AudioSource>();
+            sfxSource.playOnAwake = false;
+            sfxSource.volume = 0.7f;
+            Debug.Log("AudioManager: Created SFXSource");
+        }
+        
+        // Try to auto-load audio clips from Resources
+        if (backgroundMusic == null)
+        {
+            backgroundMusic = Resources.Load<AudioClip>("Audio/background-music");
+        }
+        if (uiNavigateSound == null)
+        {
+            uiNavigateSound = Resources.Load<AudioClip>("Audio/click-sound-help-other");
+        }
+        if (uiSelectSound == null)
+        {
+            uiSelectSound = Resources.Load<AudioClip>("Audio/default-choice");
+        }
+        if (positiveStatSound == null)
+        {
+            positiveStatSound = Resources.Load<AudioClip>("Audio/bonus-point");
+        }
+        if (negativeStatSound == null)
+        {
+            negativeStatSound = Resources.Load<AudioClip>("Audio/bad-or-error-choice");
         }
     }
 
