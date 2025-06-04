@@ -175,13 +175,13 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(canvasObj.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.25f, 0.28f);
-        optionsPanel.anchorMax = new Vector2(0.75f, 0.45f);
+        optionsPanel.anchorMin = new Vector2(0.32f, 0.27f);
+        optionsPanel.anchorMax = new Vector2(0.68f, 0.44f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 3;
-        layout.padding = new RectOffset(10, 10, 5, 5);
-        layout.childControlHeight = false;
+        layout.spacing = 2;
+        layout.padding = new RectOffset(8, 8, 3, 3);
+        layout.childControlHeight = true;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
         layout.childScaleHeight = true;
@@ -217,13 +217,13 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.25f, 0.28f);
-        optionsPanel.anchorMax = new Vector2(0.75f, 0.45f);
+        optionsPanel.anchorMin = new Vector2(0.32f, 0.27f);
+        optionsPanel.anchorMax = new Vector2(0.68f, 0.44f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 3;
-        layout.padding = new RectOffset(10, 10, 5, 5);
-        layout.childControlHeight = false;
+        layout.spacing = 2;
+        layout.padding = new RectOffset(8, 8, 3, 3);
+        layout.childControlHeight = true;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
         layout.childScaleHeight = true;
@@ -502,8 +502,9 @@ public class SimpleUIFix : MonoBehaviour
             
             // Layout
             LayoutElement layout = buttonObj.AddComponent<LayoutElement>();
-            layout.preferredHeight = 32;
+            layout.preferredHeight = 28;
             layout.flexibleHeight = 1;
+            layout.minHeight = 25;
             
             // Text
             GameObject textObj = new GameObject("Text");
@@ -511,15 +512,15 @@ public class SimpleUIFix : MonoBehaviour
             TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
             string statPreview = GetStatPreviewText(option);
             text.text = $"{i + 1}. {option.text}{statPreview}";
-            text.fontSize = 14;
+            text.fontSize = 12;
             text.color = Color.white;
             text.alignment = TextAlignmentOptions.Center;
             
             RectTransform textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(8, 3);
-            textRect.offsetMax = new Vector2(-8, -3);
+            textRect.offsetMin = new Vector2(5, 2);
+            textRect.offsetMax = new Vector2(-5, -2);
             
             // Click handler
             int index = i;
@@ -573,32 +574,35 @@ public class SimpleUIFix : MonoBehaviour
         if (option.profit != 0)
         {
             int variance = Mathf.Abs(option.profit) / 4;
+            string color = option.profit > 0 ? "#4CAF50" : "#F44336"; // Green for positive, red for negative
             if (variance > 0)
-                statParts.Add($"$: {option.profit - variance}~{option.profit + variance}");
+                statParts.Add($"<color={color}>$: {option.profit - variance}~{option.profit + variance}</color>");
             else
-                statParts.Add($"$: {option.profit:+0;-0}");
+                statParts.Add($"<color={color}>$: {option.profit:+0;-0}</color>");
         }
         
         if (option.relationships != 0)
         {
             int variance = Mathf.Abs(option.relationships) / 4;
+            string color = option.relationships > 0 ? "#2196F3" : "#FF9800"; // Blue for positive, orange for negative
             if (variance > 0)
-                statParts.Add($"R: {option.relationships - variance}~{option.relationships + variance}");
+                statParts.Add($"<color={color}>R: {option.relationships - variance}~{option.relationships + variance}</color>");
             else
-                statParts.Add($"R: {option.relationships:+0;-0}");
+                statParts.Add($"<color={color}>R: {option.relationships:+0;-0}</color>");
         }
         
         if (option.suspicion != 0)
         {
             int variance = Mathf.Abs(option.suspicion) / 4;
+            string color = option.suspicion > 0 ? "#E91E63" : "#9C27B0"; // Pink for positive (bad), purple for negative (good)
             if (variance > 0)
-                statParts.Add($"S: {option.suspicion - variance}~{option.suspicion + variance}");
+                statParts.Add($"<color={color}>S: {option.suspicion - variance}~{option.suspicion + variance}</color>");
             else
-                statParts.Add($"S: {option.suspicion:+0;-0}");
+                statParts.Add($"<color={color}>S: {option.suspicion:+0;-0}</color>");
         }
         
         if (statParts.Count > 0)
-            return $" <size=12><color=#888>({string.Join(", ", statParts)})</color></size>";
+            return $" <size=11>({string.Join(", ", statParts)})</size>";
         
         return "";
     }
