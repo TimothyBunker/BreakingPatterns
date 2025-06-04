@@ -167,7 +167,7 @@ public class SimpleUIFix : MonoBehaviour
         
         RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
         dialogueRect.anchorMin = new Vector2(0.35f, 0.47f);
-        dialogueRect.anchorMax = new Vector2(0.65f, 0.2f);
+        dialogueRect.anchorMax = new Vector2(0.65f, 0.63f);
         dialogueRect.offsetMin = new Vector2(10, 10);
         dialogueRect.offsetMax = new Vector2(-10, -10);
         
@@ -509,7 +509,8 @@ public class SimpleUIFix : MonoBehaviour
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(buttonObj.transform, false);
             TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
-            text.text = $"{i + 1}. {option.text}";
+            string statPreview = GetStatPreviewText(option);
+            text.text = $"{i + 1}. {option.text}{statPreview}";
             text.fontSize = 14;
             text.color = Color.white;
             text.alignment = TextAlignmentOptions.Center;
@@ -562,5 +563,43 @@ public class SimpleUIFix : MonoBehaviour
             else if (soundType == "ui-select")
                 AudioManager.Instance.PlayUISelectSound();
         }
+    }
+    
+    string GetStatPreviewText(DialogueOption option)
+    {
+        var statParts = new System.Collections.Generic.List<string>();
+        
+        // Calculate variance ranges like StatModifier does
+        if (option.profit != 0)
+        {
+            int variance = Mathf.Abs(option.profit) / 4;
+            if (variance > 0)
+                statParts.Add($"$: {option.profit - variance}~{option.profit + variance}");
+            else
+                statParts.Add($"$: {option.profit:+0;-0}");
+        }
+        
+        if (option.relationships != 0)
+        {
+            int variance = Mathf.Abs(option.relationships) / 4;
+            if (variance > 0)
+                statParts.Add($"R: {option.relationships - variance}~{option.relationships + variance}");
+            else
+                statParts.Add($"R: {option.relationships:+0;-0}");
+        }
+        
+        if (option.suspicion != 0)
+        {
+            int variance = Mathf.Abs(option.suspicion) / 4;
+            if (variance > 0)
+                statParts.Add($"S: {option.suspicion - variance}~{option.suspicion + variance}");
+            else
+                statParts.Add($"S: {option.suspicion:+0;-0}");
+        }
+        
+        if (statParts.Count > 0)
+            return $" <size=12><color=#888>({string.Join(", ", statParts)})</color></size>";
+        
+        return "";
     }
 }
