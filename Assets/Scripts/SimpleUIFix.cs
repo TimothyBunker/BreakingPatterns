@@ -166,21 +166,21 @@ public class SimpleUIFix : MonoBehaviour
         dialogueText.alignment = TextAlignmentOptions.TopLeft;
         
         RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.15f, 0.35f);
-        dialogueRect.anchorMax = new Vector2(0.85f, 0.65f);
-        dialogueRect.offsetMin = new Vector2(20, 20);
-        dialogueRect.offsetMax = new Vector2(-20, -20);
+        dialogueRect.anchorMin = new Vector2(0.2f, 0.45f);
+        dialogueRect.anchorMax = new Vector2(0.8f, 0.65f);
+        dialogueRect.offsetMin = new Vector2(15, 15);
+        dialogueRect.offsetMax = new Vector2(-15, -15);
         
         // Options panel (positioned below dialogue)
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(canvasObj.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.2f, 0.15f);
-        optionsPanel.anchorMax = new Vector2(0.8f, 0.45f);
+        optionsPanel.anchorMin = new Vector2(0.2f, 0.25f);
+        optionsPanel.anchorMax = new Vector2(0.8f, 0.43f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 10;
-        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.spacing = 5;
+        layout.padding = new RectOffset(15, 15, 10, 10);
         layout.childControlHeight = false;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
@@ -216,12 +216,12 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.1f, 0.15f);
-        optionsPanel.anchorMax = new Vector2(0.9f, 0.45f);
+        optionsPanel.anchorMin = new Vector2(0.1f, 0.25f);
+        optionsPanel.anchorMax = new Vector2(0.9f, 0.43f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 10;
-        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.spacing = 5;
+        layout.padding = new RectOffset(15, 15, 10, 10);
         layout.childControlHeight = false;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
@@ -425,9 +425,21 @@ public class SimpleUIFix : MonoBehaviour
             leftCharacter.color = Color.clear;
         }
         
-        // Right character (DialogueNode doesn't have charRight, so keep it hidden)
+        // Right character - always show Walter White
         if (rightCharacter != null)
-            rightCharacter.color = Color.clear;
+        {
+            Sprite walterSprite = Resources.Load<Sprite>("Sprites/Characters/WalterWhite_front");
+            if (walterSprite != null)
+            {
+                rightCharacter.sprite = walterSprite;
+                rightCharacter.color = Color.white;
+            }
+            else
+            {
+                rightCharacter.color = Color.clear;
+                Debug.LogWarning("SimpleUIFix: Walter White sprite not found: Sprites/Characters/WalterWhite_front");
+            }
+        }
         
         // Filter options based on relationship requirements (like DialogueManager does)
         var filteredOptions = new List<DialogueOption>();
@@ -488,7 +500,7 @@ public class SimpleUIFix : MonoBehaviour
             
             // Layout
             LayoutElement layout = buttonObj.AddComponent<LayoutElement>();
-            layout.preferredHeight = 50;
+            layout.preferredHeight = 40;
             
             // Text
             GameObject textObj = new GameObject("Text");

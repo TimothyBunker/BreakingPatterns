@@ -114,12 +114,15 @@ public class EarlySetup : MonoBehaviour
         dialoguePanel.transform.SetParent(mainCanvas.transform, false);
         
         RectTransform dialogueRect = dialoguePanel.AddComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.1f, 0.3f);
-        dialogueRect.anchorMax = new Vector2(0.9f, 0.7f);
+        dialogueRect.anchorMin = new Vector2(0.15f, 0.42f);
+        dialogueRect.anchorMax = new Vector2(0.85f, 0.68f);
         
         // Add background
         Image dialogueBg = dialoguePanel.AddComponent<Image>();
-        dialogueBg.color = new Color(0, 0, 0, 0.85f); // More opaque
+        dialogueBg.color = new Color(0, 0, 0, 0.85f);
+        
+        // Make sure it renders behind text
+        dialogueBg.transform.SetAsFirstSibling(); // More opaque
         
         // Add canvas group for proper layering
         CanvasGroup dialogueGroup = dialoguePanel.AddComponent<CanvasGroup>();
@@ -132,8 +135,8 @@ public class EarlySetup : MonoBehaviour
         RectTransform textRect = textContainer.AddComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(20, 20);
-        textRect.offsetMax = new Vector2(-20, -20);
+        textRect.offsetMin = new Vector2(15, 15);
+        textRect.offsetMax = new Vector2(-15, -15);
         
         Debug.Log("EarlySetup: Created dialogue panel");
     }
