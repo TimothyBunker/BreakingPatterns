@@ -114,8 +114,8 @@ public class EarlySetup : MonoBehaviour
         dialoguePanel.transform.SetParent(mainCanvas.transform, false);
         
         RectTransform dialogueRect = dialoguePanel.AddComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.15f, 0.42f);
-        dialogueRect.anchorMax = new Vector2(0.85f, 0.68f);
+        dialogueRect.anchorMin = new Vector2(0.2f, 0.45f);
+        dialogueRect.anchorMax = new Vector2(0.8f, 0.65f);
         
         // Add background
         Image dialogueBg = dialoguePanel.AddComponent<Image>();

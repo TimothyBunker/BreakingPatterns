@@ -161,29 +161,30 @@ public class SimpleUIFix : MonoBehaviour
         GameObject dialogueObj = new GameObject("DialogueText");
         dialogueObj.transform.SetParent(canvasObj.transform, false);
         dialogueText = dialogueObj.AddComponent<TextMeshProUGUI>();
-        dialogueText.fontSize = 20;
+        dialogueText.fontSize = 16;
         dialogueText.color = Color.white;
-        dialogueText.alignment = TextAlignmentOptions.TopLeft;
+        dialogueText.alignment = TextAlignmentOptions.Center;
         
         RectTransform dialogueRect = dialogueObj.GetComponent<RectTransform>();
-        dialogueRect.anchorMin = new Vector2(0.2f, 0.45f);
-        dialogueRect.anchorMax = new Vector2(0.8f, 0.65f);
-        dialogueRect.offsetMin = new Vector2(15, 15);
-        dialogueRect.offsetMax = new Vector2(-15, -15);
+        dialogueRect.anchorMin = new Vector2(0.25f, 0.47f);
+        dialogueRect.anchorMax = new Vector2(0.75f, 0.63f);
+        dialogueRect.offsetMin = new Vector2(10, 10);
+        dialogueRect.offsetMax = new Vector2(-10, -10);
         
         // Options panel (positioned below dialogue)
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(canvasObj.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.2f, 0.25f);
-        optionsPanel.anchorMax = new Vector2(0.8f, 0.43f);
+        optionsPanel.anchorMin = new Vector2(0.25f, 0.28f);
+        optionsPanel.anchorMax = new Vector2(0.75f, 0.45f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 5;
-        layout.padding = new RectOffset(15, 15, 10, 10);
+        layout.spacing = 3;
+        layout.padding = new RectOffset(10, 10, 5, 5);
         layout.childControlHeight = false;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
+        layout.childScaleHeight = true;
         
         Debug.Log("SimpleUIFix: UI created successfully");
     }
@@ -216,15 +217,16 @@ public class SimpleUIFix : MonoBehaviour
         GameObject optionsPanelObj = new GameObject("OptionsPanel");
         optionsPanelObj.transform.SetParent(mainCanvas.transform, false);
         optionsPanel = optionsPanelObj.AddComponent<RectTransform>();
-        optionsPanel.anchorMin = new Vector2(0.1f, 0.25f);
-        optionsPanel.anchorMax = new Vector2(0.9f, 0.43f);
+        optionsPanel.anchorMin = new Vector2(0.25f, 0.28f);
+        optionsPanel.anchorMax = new Vector2(0.75f, 0.45f);
         
         VerticalLayoutGroup layout = optionsPanelObj.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 5;
-        layout.padding = new RectOffset(15, 15, 10, 10);
+        layout.spacing = 3;
+        layout.padding = new RectOffset(10, 10, 5, 5);
         layout.childControlHeight = false;
         layout.childControlWidth = true;
         layout.childForceExpandWidth = true;
+        layout.childScaleHeight = true;
         
         // Create background image for game backgrounds
         GameObject bgObj = new GameObject("GameBackground");
@@ -500,22 +502,23 @@ public class SimpleUIFix : MonoBehaviour
             
             // Layout
             LayoutElement layout = buttonObj.AddComponent<LayoutElement>();
-            layout.preferredHeight = 40;
+            layout.preferredHeight = 32;
+            layout.flexibleHeight = 1;
             
             // Text
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(buttonObj.transform, false);
             TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
             text.text = $"{i + 1}. {option.text}";
-            text.fontSize = 18;
+            text.fontSize = 14;
             text.color = Color.white;
-            text.alignment = TextAlignmentOptions.MidlineLeft;
+            text.alignment = TextAlignmentOptions.Center;
             
             RectTransform textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(15, 5);
-            textRect.offsetMax = new Vector2(-15, -5);
+            textRect.offsetMin = new Vector2(8, 3);
+            textRect.offsetMax = new Vector2(-8, -3);
             
             // Click handler
             int index = i;
