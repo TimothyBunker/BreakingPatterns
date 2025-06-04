@@ -638,7 +638,7 @@ public class SimpleUIOverride : MonoBehaviour
         // Play selection sound using AudioManager
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayDefaultChoiceSound();
+            AudioManager.Instance.PlayUISelectSound();
         }
         else
         {
