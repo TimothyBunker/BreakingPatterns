@@ -26,8 +26,10 @@ public class SimpleUIFix : MonoBehaviour
     
     void Awake()
     {
+        Debug.Log("SimpleUIFix: Awake() starting...");
         // Execute early to set up DialogueManager before it initializes
         SetupDialogueManagerReferences();
+        Debug.Log("SimpleUIFix: Awake() complete");
     }
     
     void Start()

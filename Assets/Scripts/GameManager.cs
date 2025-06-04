@@ -73,22 +73,24 @@ public class GameManager : MonoBehaviour
         // }
         // #endif
         
-        // Add simple UI fix as the main UI system
-        StartCoroutine(AddSimpleUIFix());
+        // Add simple UI fix as the main UI system immediately
+        AddSimpleUIFixNow();
 
         UpdateUI(); // Update UI with initial values
     }
     
-    System.Collections.IEnumerator AddSimpleUIFix()
+    void AddSimpleUIFixNow()
     {
-        yield return new WaitForSeconds(0.1f);
-        
-        // Always add simple UI fix as the main UI system
+        // Always add simple UI fix as the main UI system immediately
         var simpleUIFix = FindFirstObjectByType<SimpleUIFix>();
         if (simpleUIFix == null)
         {
-            Debug.Log("GameManager: Creating SimpleUIFix");
+            Debug.Log("GameManager: Creating SimpleUIFix immediately");
             new GameObject("SimpleUIFix").AddComponent<SimpleUIFix>();
+        }
+        else
+        {
+            Debug.Log("GameManager: SimpleUIFix already exists");
         }
     }
 
