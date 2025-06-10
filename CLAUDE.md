@@ -10,6 +10,7 @@ This is a Unity 6 narrative game based on Breaking Bad where players make choice
 
 ### Unity Version
 - Unity 6000.0.47f1 (Unity 6)
+- Universal Render Pipeline (URP) 17.0.4
 
 ### Building the Game
 1. Open the project in Unity 6
@@ -17,21 +18,29 @@ This is a Unity 6 narrative game based on Breaking Bad where players make choice
 3. Ensure both scenes are included:
    - Scene0 (main game scene)
    - EndScene (game over/completion scene)
-4. Build for target platform (PC/Mac/Linux)
+4. Build for target platform (PC/Mac/Linux Standalone)
 
 ### Running and Testing
 - Open Scene0.unity in Unity Editor
 - Press Play to test the game
 - Use arrow keys to navigate choices, Enter/Space/Number keys to select
+- No automated test framework - manual testing only
 
 ## Architecture Overview
 
 ### Core Game Loop
-The game follows a state machine pattern where:
+The game follows a state-driven dialogue system:
 1. **DialogueJsonLoader** loads story content from JSON files on startup
 2. **DialogueManager** displays current dialogue node and handles player input
 3. **GameManager** (singleton) tracks game state and applies choice consequences
 4. Player choices lead to new dialogue nodes until reaching an end state
+
+### Architecture Pattern
+```
+JSON Data → Loader → Manager → UI → Feedback
+     ↓                   ↓
+Side Events      Game State (Singleton)
+```
 
 ### Key Systems
 
@@ -44,23 +53,22 @@ The game follows a state machine pattern where:
   - Next node ID for story progression
 
 **Stat System**
-- **Profit**: 0-100, represents money earned
+- **Profit**: 0-999, represents money earned
 - **Relationships**: 0-100, represents standing with other characters  
 - **Suspicion**: 0-100, triggers game over at 100 (DEA catches player)
+- High relationships reduce suspicion gain by up to 30%
 
 **Side Event System**
 - 35% chance to trigger between main story beats
-- Can have conditions (e.g., minimum suspicion level)
+- Can have conditions (e.g., minimum suspicion level, relationship thresholds)
 - Rare events have only 10% trigger chance
+- Deck-based system (events removed after showing)
 
-### Data Flow
-```
-JSON Files → DialogueJsonLoader → DialogueManager ↔ GameManager
-                                         ↓
-                                    Player Input
-                                         ↓
-                                   Update Stats → Check Game Over
-```
+**Dynamic Stat Modifier System**
+- RNG variance adds ±33% to base stat values
+- Critical success (10% chance): doubles positive gains
+- Critical failure (5% chance): doubles negative impacts
+- UI shows expected ranges (e.g., "+5~+10")
 
 ## Important Implementation Details
 
@@ -76,20 +84,30 @@ JSON Files → DialogueJsonLoader → DialogueManager ↔ GameManager
 - `default-choice.mp3`: Neutral choices
 - `background-music.mp3`: Loops during gameplay
 
-### UI Formatting
+### UI System
 - Choice options display stat changes with color coding:
   - Green (+) for increases
   - Red (-) for decreases
   - Format: `[+5 Profit, -10 Relationships]`
+- Layer hierarchy: Background < Dialogue < Stats < Effects < ScreenFlash
+- Screen effects: flash for criticals, shake for major changes
+- Danger warnings when suspicion > 80
+
+### Key Design Patterns
+- **Singleton Pattern**: GameManager, AudioManager use DontDestroyOnLoad
+- **Data-Driven Design**: All content in JSON, no hardcoded dialogue
+- **Relationship Gates**: Dialogue options can be hidden based on relationship levels
+- **Character Portraits**: Left character changes per scene, Walter stays right
+- **Input Accessibility**: Keyboard support (arrows, Enter, number keys)
 
 ### Critical Files to Understand
-1. `GameManager.cs` - Game state and stat management
+1. `GameManager.cs` - Game state and stat management (singleton)
 2. `DialogueManager.cs` - Core gameplay loop and UI
 3. `DialogueData.cs` - Data structures for dialogue system
 4. `breaking_patterns.json` - Main story content
 5. `side_events.json` - Random event content
 6. `StatModifier.cs` - RNG system for dynamic stat changes
 7. `FeedbackSystem.cs` - Visual/audio feedback for player actions
-8. `UIManager.cs` - Responsive UI system
+8. `UILayerManager.cs` - UI rendering order control
 9. `DialogueUI.cs` - Modern dialogue presentation
 10. `RelationshipEventSystem.cs` - Relationship-based events
