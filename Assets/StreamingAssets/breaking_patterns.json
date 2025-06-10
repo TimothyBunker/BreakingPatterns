@@ -1,120 +1,283 @@
 {
   "nodes": [
     {
-      "body": "You are Walter White — a chemistry teacher with terminal cancer and nothing to lose. To secure your family’s future, you turn to the meth business…",
+      "body": "You are Walter White \u2014 a chemistry teacher with terminal cancer and nothing to lose. To secure your family\u2019s future, you turn to the meth business\u2026",
       "background": "bb_walthouse",
       "charLeft": "",
       "options": [
-        { "text": "Continue…", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": 1 }
-      ]
+        {
+          "text": "Continue\u2026",
+          "profit": 0,
+          "relationships": 0,
+          "suspicion": 0,
+          "nextNode": 1
+        }
+      ],
+      "id": 0
     },
     {
-      "body": "After receiving your cancer diagnosis, you weigh your options…",
+      "body": "After receiving your cancer diagnosis, you weigh your options\u2026",
       "background": "bb_insdev",
       "charLeft": "",
       "options": [
-        { "text": "Start a meth empire to secure cash fast.",  "profit": 5,  "relationships": -15, "suspicion": 10, "nextNode": 2 },
-        { "text": "Stick to teaching, maybe take a second job.", "profit": -20, "relationships": 0,  "suspicion": -5, "nextNode": 2 }
-      ]
+        {
+          "text": "Start a meth empire to secure cash fast.",
+          "profit": 5,
+          "relationships": -15,
+          "suspicion": 10,
+          "nextNode": 2
+        },
+        {
+          "text": "Stick to teaching, maybe take a second job.",
+          "profit": -20,
+          "relationships": 0,
+          "suspicion": -5,
+          "nextNode": 2
+        }
+      ],
+      "id": 1
     },
     {
-      "body": "You remember Jesse Pinkman, a former student…\n\nWalter: “Jesse, I need your help. I know the chemistry; you know the street.”\n\nJesse: “Yo… are you serious? You want to cook meth?”",
+      "body": "You remember Jesse Pinkman, a former student\u2026\n\nWalter: \u201cJesse, I need your help. I know the chemistry; you know the street.\u201d\n\nJesse: \u201cYo\u2026 are you serious? You want to cook meth?\u201d",
       "background": "bb_parkinglot",
       "charLeft": "Jesse_front",
       "options": [
-        { "text": "Partner with Jesse.", "profit": 15, "relationships": -10, "suspicion": 10, "nextNode": 3 },
-        { "text": "Go solo.",            "profit": 0,  "relationships": -15, "suspicion": 10, "nextNode": 3 }
-      ]
+        {
+          "text": "Partner with Jesse.",
+          "profit": 15,
+          "relationships": -10,
+          "suspicion": 10,
+          "nextNode": 3
+        },
+        {
+          "text": "Go solo.",
+          "profit": 0,
+          "relationships": -15,
+          "suspicion": 10,
+          "nextNode": 3
+        }
+      ],
+      "id": 2
     },
     {
-      "body": "First cook complete.\n\nJesse: “Damn, Mr. White. This is… pure. 99.1 %!”\nWalter: “We sell it. Quietly. No mistakes.”",
+      "body": "First cook complete.\n\nJesse: \u201cDamn, Mr. White. This is\u2026 pure. 99.1 %!\u201d\nWalter: \u201cWe sell it. Quietly. No mistakes.\u201d",
       "background": "bb_desert",
       "charLeft": "Jesse_front",
       "options": [
-        { "text": "Sell locally through street dealers.", "profit": 10, "relationships": -5, "suspicion": 10, "nextNode": 4 },
-        { "text": "Seek big-time buyers.",                "profit": 25, "relationships": -10, "suspicion": 15, "nextNode": 4 }
-      ]
+        {
+          "text": "Sell locally through street dealers.",
+          "profit": 10,
+          "relationships": -5,
+          "suspicion": 10,
+          "nextNode": 4
+        },
+        {
+          "text": "Seek big-time buyers.",
+          "profit": 25,
+          "relationships": -10,
+          "suspicion": 15,
+          "nextNode": 4
+        }
+      ],
+      "id": 3
     },
     {
-      "body": "Krazy-8 finds out you are cooking on his turf. You capture him, but he is a threat.\n\nJesse: “What now, man? He saw our faces!”",
+      "body": "Krazy-8 finds out you are cooking on his turf. You capture him, but he is a threat.\n\nJesse: \u201cWhat now, man? He saw our faces!\u201d",
       "background": "bb_doghouse",
       "charLeft": "Jesse_front",
       "options": [
-        { "text": "Kill Krazy-8.", "profit": 5,  "relationships": -25, "suspicion": 20, "nextNode": 5 },
-        { "text": "Let him go.",   "profit": -15, "relationships": -15, "suspicion": 25, "nextNode": 5 }
-      ]
+        {
+          "text": "Kill Krazy-8.",
+          "profit": 5,
+          "relationships": -25,
+          "suspicion": 20,
+          "nextNode": 5
+        },
+        {
+          "text": "Let him go.",
+          "profit": -15,
+          "relationships": -15,
+          "suspicion": 25,
+          "nextNode": 5
+        }
+      ],
+      "id": 4
     },
     {
-      "body": "You meet Tuco — unstable, but powerful.\n\nTuco: “You got stones, Heisenberg. Let’s make money.”\nJesse: “This dude is psycho.”",
+      "body": "You meet Tuco \u2014 unstable, but powerful.\n\nTuco: \u201cYou got stones, Heisenberg. Let\u2019s make money.\u201d\nJesse: \u201cThis dude is psycho.\u201d",
       "background": "bb_tucoslair",
       "charLeft": "Tuco_front",
       "options": [
-        { "text": "Work with Tuco.",         "profit": 30, "relationships": -20, "suspicion": 20, "nextNode": 6 },
-        { "text": "Avoid Tuco, stay small.", "profit": 5,  "relationships": -5,  "suspicion": 5,  "nextNode": 6 }
-      ]
+        {
+          "text": "Work with Tuco.",
+          "profit": 30,
+          "relationships": -20,
+          "suspicion": 20,
+          "nextNode": 6
+        },
+        {
+          "text": "Avoid Tuco, stay small.",
+          "profit": 5,
+          "relationships": -5,
+          "suspicion": 5,
+          "nextNode": 6
+        }
+      ],
+      "id": 5
     },
     {
-      "body": "The DEA is noticing your product. It is too pure to ignore.\n\nJesse: “People are talking, man. DEA is looking into blue stuff.”",
+      "body": "The DEA is noticing your product. It is too pure to ignore.\n\nJesse: \u201cPeople are talking, man. DEA is looking into blue stuff.\u201d",
       "background": "bb_townstreet",
       "charLeft": "Mike_front",
       "options": [
-        { "text": "Lay low. Take a break.",    "profit": -15, "relationships": 0,  "suspicion": -10, "nextNode": 7 },
-        { "text": "Ramp up production anyway.", "profit": 20, "relationships": -15, "suspicion": 15, "nextNode": 7 }
-      ]
+        {
+          "text": "Lay low. Take a break.",
+          "profit": -15,
+          "relationships": 0,
+          "suspicion": -10,
+          "nextNode": 7
+        },
+        {
+          "text": "Ramp up production anyway.",
+          "profit": 20,
+          "relationships": -15,
+          "suspicion": 15,
+          "nextNode": 7
+        }
+      ],
+      "id": 6
     },
     {
-      "body": "A man named Gus Fring offers to buy your product — in massive volume.\n\nGus: “I provide distribution. You provide consistency. Are we clear?”",
+      "body": "A man named Gus Fring offers to buy your product \u2014 in massive volume.\n\nGus: \u201cI provide distribution. You provide consistency. Are we clear?\u201d",
       "background": "bb_guslospollos",
       "charLeft": "Gus_front",
       "options": [
-        { "text": "Work with Gus.",   "profit": 35, "relationships": -15, "suspicion": 10, "nextNode": 8 },
-        { "text": "Go independent.", "profit": 5,  "relationships": -10, "suspicion": 25, "nextNode": 8 }
-      ]
+        {
+          "text": "Work with Gus.",
+          "profit": 35,
+          "relationships": -15,
+          "suspicion": 10,
+          "nextNode": 8
+        },
+        {
+          "text": "Go independent.",
+          "profit": 5,
+          "relationships": -10,
+          "suspicion": 25,
+          "nextNode": 8
+        }
+      ],
+      "id": 7
     },
     {
-      "body": "Jesse is on edge. He is suspicious of you, Gus, and everything.\n\nJesse: “You are using me, man. I am not your pawn.”",
+      "body": "Jesse is on edge. He is suspicious of you, Gus, and everything.\n\nJesse: \u201cYou are using me, man. I am not your pawn.\u201d",
       "background": "bb_jessehotel",
       "charLeft": "Jesse_front",
       "options": [
-        { "text": "Be honest, try to rebuild trust.", "profit": 0,  "relationships": 10, "suspicion": -5, "nextNode": 9 },
-        { "text": "Manipulate him into staying.",    "profit": 5,  "relationships": -20, "suspicion": 10, "nextNode": 9 }
-      ]
+        {
+          "text": "Be honest, try to rebuild trust.",
+          "profit": 0,
+          "relationships": 10,
+          "suspicion": -5,
+          "nextNode": 9
+        },
+        {
+          "text": "Manipulate him into staying.",
+          "profit": 5,
+          "relationships": -20,
+          "suspicion": 10,
+          "nextNode": 9
+        }
+      ],
+      "id": 8
     },
     {
       "body": "Hank casually mentions a bizarrely pure blue meth case at family dinner.",
       "background": "bb_walthouse",
       "charLeft": "Hank_front",
       "options": [
-        { "text": "Laugh it off and change the subject.",    "profit": 0, "relationships": -2,  "suspicion": 5,  "nextNode": 10 },
-        { "text": "Probe for details about the investigation.", "profit": 0, "relationships": -10, "suspicion": 15, "nextNode": 10 }
-      ]
+        {
+          "text": "Laugh it off and change the subject.",
+          "profit": 0,
+          "relationships": -2,
+          "suspicion": 5,
+          "nextNode": 10
+        },
+        {
+          "text": "Probe for details about the investigation.",
+          "profit": 0,
+          "relationships": -10,
+          "suspicion": 15,
+          "nextNode": 10
+        }
+      ],
+      "id": 9
     },
     {
       "body": "Saul suggests buying a car wash to clean your cash quickly.",
       "background": "bb_saul_office",
       "charLeft": "SaulGoodman_front",
       "options": [
-        { "text": "Purchase the car wash.",          "profit": -20, "relationships": -5, "suspicion": -10, "nextNode": 11 },
-        { "text": "Too risky. Keep cash in barrels.", "profit": 0,  "relationships": -10, "suspicion": 15, "nextNode": 11 }
-      ]
+        {
+          "text": "Purchase the car wash.",
+          "profit": -20,
+          "relationships": -5,
+          "suspicion": -10,
+          "nextNode": 11
+        },
+        {
+          "text": "Too risky. Keep cash in barrels.",
+          "profit": 0,
+          "relationships": -10,
+          "suspicion": 15,
+          "nextNode": 11
+        }
+      ],
+      "id": 10
     },
     {
       "body": "The DEA is tightening their grip. Arrests are happening. Your alias is at risk.",
       "background": "bb_desk",
       "charLeft": "SaulGoodman_front",
       "options": [
-        { "text": "Hide evidence, cover your tracks.",     "profit": -15, "relationships": -10, "suspicion": 10, "nextNode": 12 },
-        { "text": "Confront those who might betray you.", "profit": 5,  "relationships": -25, "suspicion": 25, "nextNode": 12 }
-      ]
+        {
+          "text": "Hide evidence, cover your tracks.",
+          "profit": -15,
+          "relationships": -10,
+          "suspicion": 10,
+          "nextNode": 12
+        },
+        {
+          "text": "Confront those who might betray you.",
+          "profit": 5,
+          "relationships": -25,
+          "suspicion": 25,
+          "nextNode": 12
+        }
+      ],
+      "id": 11
     },
     {
       "body": "The empire is crumbling. Jesse is distant. Gus is watching you. The DEA is one step behind.",
       "background": "bb_guslabtwo",
       "charLeft": "",
       "options": [
-        { "text": "Save yourself. Flee with profits.",              "profit": 20,  "relationships": -50, "suspicion": 30, "nextNode": -1 },
-        { "text": "Go down with the empire. Try to fix everything.","profit": -30, "relationships": -30, "suspicion": 30, "nextNode": -1 }
-      ]
+        {
+          "text": "Save yourself. Flee with profits.",
+          "profit": 20,
+          "relationships": -50,
+          "suspicion": 30,
+          "nextNode": -1
+        },
+        {
+          "text": "Go down with the empire. Try to fix everything.",
+          "profit": -30,
+          "relationships": -30,
+          "suspicion": 30,
+          "nextNode": -1
+        }
+      ],
+      "id": 12
     }
   ]
 }

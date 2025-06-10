@@ -45,9 +45,11 @@ Side Events      Game State (Singleton)
 ### Key Systems
 
 **Dialogue System**
+- Intro sequence loaded from `Assets/StreamingAssets/breaking_patterns_intro.json`
 - Main story loaded from `Assets/StreamingAssets/breaking_patterns.json`
 - Side events loaded from `Assets/StreamingAssets/side_events.json`
 - Each dialogue node contains:
+  - Node ID for navigation
   - Text content, background image, character name
   - Up to 3 choice options with stat consequences
   - Next node ID for story progression
@@ -69,6 +71,16 @@ Side Events      Game State (Singleton)
 - Critical success (10% chance): doubles positive gains
 - Critical failure (5% chance): doubles negative impacts
 - UI shows expected ranges (e.g., "+5~+10")
+
+**Reactive Ending System**
+- 6 different endings based on final stats:
+  - **Kingpin**: High profit + good relationships
+  - **Family Man**: Low profit + high relationships
+  - **Fugitive**: High profit + poor relationships
+  - **Captured**: Suspicion reaches 100
+  - **Betrayed**: Very low relationships
+  - **Survivor**: Balanced stats
+- Each ending has unique narrative, visuals, and epilogue
 
 ## Important Implementation Details
 
@@ -104,10 +116,10 @@ Side Events      Game State (Singleton)
 1. `GameManager.cs` - Game state and stat management (singleton)
 2. `DialogueManager.cs` - Core gameplay loop and UI
 3. `DialogueData.cs` - Data structures for dialogue system
-4. `breaking_patterns.json` - Main story content
-5. `side_events.json` - Random event content
-6. `StatModifier.cs` - RNG system for dynamic stat changes
-7. `FeedbackSystem.cs` - Visual/audio feedback for player actions
-8. `UILayerManager.cs` - UI rendering order control
-9. `DialogueUI.cs` - Modern dialogue presentation
-10. `RelationshipEventSystem.cs` - Relationship-based events
+4. `breaking_patterns_intro.json` - Immersive intro sequence
+5. `breaking_patterns.json` - Main story content
+6. `side_events.json` - Random event content
+7. `EndSceneController.cs` - Reactive ending system with 6 different endings
+8. `StatModifier.cs` - RNG system for dynamic stat changes
+9. `FeedbackSystem.cs` - Visual/audio feedback for player actions
+10. `UILayerManager.cs` - UI rendering order control

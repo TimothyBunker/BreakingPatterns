@@ -1,0 +1,58 @@
+{
+  "introNodes": [
+    {
+      "id": -10,
+      "body": "*Albuquerque, New Mexico*\n\nThe desert sun beats down on suburban homes, where ordinary people live ordinary lives. But beneath the surface, darkness grows...",
+      "background": "bb_townstreet",
+      "charLeft": "",
+      "options": [
+        { "text": "...", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": -9 }
+      ]
+    },
+    {
+      "id": -9,
+      "body": "*One Year Ago*\n\nYou stand in a sterile doctor's office, the diagnosis still echoing in your ears: terminal lung cancer. Two years to live, at most.",
+      "background": "bb_walthouse",
+      "charLeft": "",
+      "options": [
+        { "text": "This can't be happening...", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": -8 }
+      ]
+    },
+    {
+      "id": -8,
+      "body": "You are Walter White. Chemistry teacher. Husband. Father of two.\n\nFor fifty years, you've played by the rules. Worked hard. Stayed quiet. And for what? To die broke and forgotten?",
+      "background": "bb_walthouse",
+      "charLeft": "WalterWhite_front",
+      "options": [
+        { "text": "No. Not like this.", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": -7 }
+      ]
+    },
+    {
+      "id": -7,
+      "body": "The ride-along with your DEA brother-in-law Hank changed everything. Watching him bust a meth lab, you saw opportunity where others saw crime.\n\nWith your chemistry knowledge, you could make the purest product on the market.",
+      "background": "bb_desert",
+      "charLeft": "",
+      "options": [
+        { "text": "I know the chemistry...", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": -6 }
+      ]
+    },
+    {
+      "id": -6,
+      "body": "*Present Day*\n\nYou've made your decision. The question now is how to proceed.\n\nEvery choice has consequences. Money gained might mean relationships lost. Trust earned could mean suspicion raised.",
+      "background": "bb_walthouse",
+      "charLeft": "",
+      "options": [
+        { "text": "I understand the risks.", "profit": 0, "relationships": 50, "suspicion": 0, "nextNode": -5 }
+      ]
+    },
+    {
+      "id": -5,
+      "body": "Remember:\n• [PROFIT] represents your financial gains\n• [RELATIONSHIPS] shows how others view you\n• [SUSPICION] tracks DEA heat - reach 100 and it's over\n\nYour relationships affect everything. High trust means lower suspicion. Choose wisely.",
+      "background": "bb_walthouse",
+      "charLeft": "",
+      "options": [
+        { "text": "Time to break bad.", "profit": 0, "relationships": 0, "suspicion": 0, "nextNode": 0 }
+      ]
+    }
+  ]
+}

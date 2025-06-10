@@ -14,6 +14,7 @@ public class StatChanges
 [System.Serializable]
 public class DialogueNode
 {
+    public int id;                       // Node ID for navigation
     public string body;
     public string background;            // file-stem: �bb_hospital�
     public string charLeft;

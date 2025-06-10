@@ -35,7 +35,20 @@ public class DialogueManager : MonoBehaviour
     {
         nodes = main;
         deck = side ?? new List<SideEvent>();
-        nodeIdx = optionIdx = 0;
+        
+        // Start with intro if it exists, otherwise start at node 0
+        nodeIdx = -1;
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            if (nodes[i].id == -10)
+            {
+                nodeIdx = i;
+                break;
+            }
+        }
+        if (nodeIdx == -1) nodeIdx = 0; // Fallback to node 0 if no intro
+        
+        optionIdx = 0;
         
         // Initialize relationship event system
         relationshipEvents = GetComponent<RelationshipEventSystem>() ?? gameObject.AddComponent<RelationshipEventSystem>();
@@ -325,14 +338,25 @@ public class DialogueManager : MonoBehaviour
         // but *before* moving to the next main node.
         if (TrySideEvent()) return;
 
-        if (opt.nextNode >= 0 && opt.nextNode < nodes.Count)
+        // Find node by ID
+        int nextIndex = -1;
+        for (int i = 0; i < nodes.Count; i++)
         {
-            nodeIdx = opt.nextNode;
+            if (nodes[i].id == opt.nextNode)
+            {
+                nextIndex = i;
+                break;
+            }
+        }
+
+        if (nextIndex >= 0)
+        {
+            nodeIdx = nextIndex;
             ShowNode();
         }
         else
         {
-            // Assuming -1 (or any negative/out-of-bounds value) means end story
+            // Assuming -1 (or any ID not found) means end story
             SceneManager.LoadScene("EndScene");
         }
     }
