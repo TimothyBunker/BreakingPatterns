@@ -87,6 +87,7 @@ public class EndSceneController : MonoBehaviour
         if (statsText)
         {
             statsText.text = $"Final Stats:\nProfit: ${profit}k\nRelationships: {GetRelationshipStatus(relationships)}\nSuspicion: {suspicion}%";
+            PositionStatsRight();
         }
     }
     
@@ -120,6 +121,7 @@ public class EndSceneController : MonoBehaviour
     {
         SetBackground("bb_guslospollos");
         SetCharacter("Gus_front");
+        PositionCharacterLeft();
         
         if (endingTitleText) endingTitleText.text = "THE KINGPIN";
         if (endingDescriptionText) endingDescriptionText.text = "You built an empire and kept your allies close.";
@@ -137,6 +139,7 @@ public class EndSceneController : MonoBehaviour
     {
         SetBackground("bb_walthouse");
         SetCharacter("WalterWhite_front");
+        PositionCharacterLeft();
         
         if (endingTitleText) endingTitleText.text = "THE FAMILY MAN";
         if (endingDescriptionText) endingDescriptionText.text = "You chose family over fortune.";
@@ -171,6 +174,7 @@ public class EndSceneController : MonoBehaviour
     {
         SetBackground("bb_townstreet");
         SetCharacter("Hank_front");
+        PositionCharacterLeft();
         
         if (endingTitleText) endingTitleText.text = "CAPTURED";
         if (endingDescriptionText) endingDescriptionText.text = "The DEA finally caught up with Heisenberg.";
@@ -188,6 +192,7 @@ public class EndSceneController : MonoBehaviour
     {
         SetBackground("bb_parkinglotb");
         SetCharacter("Jesse_front");
+        PositionCharacterLeft();
         
         if (endingTitleText) endingTitleText.text = "BETRAYED";
         if (endingDescriptionText) endingDescriptionText.text = "Your partners turned on you.";
@@ -205,6 +210,7 @@ public class EndSceneController : MonoBehaviour
     {
         SetBackground("bb_waltnjesselair");
         SetCharacter("WalterWhite_front");
+        PositionCharacterLeft();
         
         if (endingTitleText) endingTitleText.text = "THE SURVIVOR";
         if (endingDescriptionText) endingDescriptionText.text = "You made it through, barely.";
@@ -275,6 +281,22 @@ public class EndSceneController : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
+    }
+    
+    void PositionCharacterLeft()
+    {
+        if (characterImage && characterImage.rectTransform)
+        {
+            characterImage.rectTransform.anchoredPosition = new Vector2(-600, 0);
+        }
+    }
+    
+    void PositionStatsRight()
+    {
+        if (statsText && statsText.rectTransform)
+        {
+            statsText.rectTransform.anchoredPosition = new Vector2(700, 0);
+        }
     }
     
     enum EndingType

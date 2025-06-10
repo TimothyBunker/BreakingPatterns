@@ -81,7 +81,7 @@ public class QuickEndSceneSetup : MonoBehaviour
         Image charImg = charObj.AddComponent<Image>();
         charImg.color = new Color(1, 1, 1, 0.5f);
         RectTransform charRect = charImg.rectTransform;
-        charRect.anchoredPosition = new Vector2(-500, 0);
+        charRect.anchoredPosition = new Vector2(-600, 0);
         charRect.sizeDelta = new Vector2(400, 600);
         
         // Create Epilogue Text
@@ -105,7 +105,7 @@ public class QuickEndSceneSetup : MonoBehaviour
         stats.alignment = TextAlignmentOptions.Left;
         stats.color = new Color(0.7f, 0.9f, 0.7f);
         RectTransform statsRect = stats.rectTransform;
-        statsRect.anchoredPosition = new Vector2(600, 0);
+        statsRect.anchoredPosition = new Vector2(700, 0);
         statsRect.sizeDelta = new Vector2(400, 300);
         
         // Create Button Panel

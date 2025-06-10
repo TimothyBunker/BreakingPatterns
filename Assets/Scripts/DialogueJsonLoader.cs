@@ -18,6 +18,9 @@ public class DialogueJsonLoader : MonoBehaviour
         string introPath = Path.Combine(Application.streamingAssetsPath, introFileName);
         List<DialogueNode> allNodes = new List<DialogueNode>();
         
+        // INTRO TEMPORARILY DISABLED due to navigation issues
+        // TODO: Fix intro node navigation
+        /*
         if (File.Exists(introPath))
         {
             string introJson = File.ReadAllText(introPath);
@@ -30,6 +33,7 @@ public class DialogueJsonLoader : MonoBehaviour
                 allNodes.AddRange(introData.introNodes);
             }
         }
+        */
 
         /* -------- main storyline -------- */
         string mainPath = Path.Combine(Application.streamingAssetsPath, mainFileName);
