@@ -37,6 +37,8 @@ public class DialogueManager : MonoBehaviour
         nodes = main;
         deck = side ?? new List<SideEvent>();
         
+        Debug.Log($"InitDecks: Received {nodes.Count} nodes");
+        
         // Start with intro if it exists, otherwise start at node 0
         nodeIdx = -1;
         for (int i = 0; i < nodes.Count; i++)
@@ -44,10 +46,15 @@ public class DialogueManager : MonoBehaviour
             if (nodes[i].id == -10)
             {
                 nodeIdx = i;
+                Debug.Log($"Found intro node -10 at index {i}");
                 break;
             }
         }
-        if (nodeIdx == -1) nodeIdx = 0; // Fallback to node 0 if no intro
+        if (nodeIdx == -1)
+        {
+            Debug.Log("No intro node found, starting at index 0");
+            nodeIdx = 0; // Fallback to node 0 if no intro
+        }
         
         optionIdx = 0;
         
@@ -118,12 +125,13 @@ public class DialogueManager : MonoBehaviour
     {
         if (nodes == null || nodeIdx < 0 || nodeIdx >= nodes.Count)
         {
-            Debug.LogError("ShowNode: Invalid node data or index.");
+            Debug.LogError($"ShowNode: Invalid node data or index. nodeIdx={nodeIdx}, nodes.Count={nodes?.Count ?? 0}");
             return;
         }
         showingCard = false;
         optionIdx = 0;
         var n = nodes[nodeIdx];
+        Debug.Log($"Showing node at index {nodeIdx} with ID {n.id}: {n.body.Substring(0, Mathf.Min(50, n.body.Length))}...");
         DrawScreen(n.body, n.background, n.charLeft, n.options, false);
     }
 
@@ -379,6 +387,13 @@ public class DialogueManager : MonoBehaviour
     // Revised TrySideEvent logic
     bool TrySideEvent()
     {
+        // Don't trigger side events during intro sequence (negative node IDs)
+        if (nodes != null && nodeIdx >= 0 && nodeIdx < nodes.Count && nodes[nodeIdx].id < 0)
+        {
+            Debug.Log("Skipping side events during intro sequence");
+            return false;
+        }
+        
         if (deck == null || deck.Count == 0) return false;
         if (rng.NextDouble() > 0.35) return false; // 35% chance to even attempt a side event
 
