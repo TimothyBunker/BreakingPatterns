@@ -18,17 +18,18 @@ public class DialogueJsonLoader : MonoBehaviour
         string introPath = Path.Combine(Application.streamingAssetsPath, introFileName);
         List<DialogueNode> allNodes = new List<DialogueNode>();
         
-        // TEMPORARILY DISABLED - Testing without intro
-        /*
         if (File.Exists(introPath))
         {
-            IntroFile introData = JsonUtility.FromJson<IntroFile>(File.ReadAllText(introPath));
+            string introJson = File.ReadAllText(introPath);
+            Debug.Log($"Loading intro from: {introPath}");
+            
+            IntroFile introData = JsonUtility.FromJson<IntroFile>(introJson);
             if (introData != null && introData.introNodes != null)
             {
+                Debug.Log($"Found {introData.introNodes.Count} intro nodes");
                 allNodes.AddRange(introData.introNodes);
             }
         }
-        */
 
         /* -------- main storyline -------- */
         string mainPath = Path.Combine(Application.streamingAssetsPath, mainFileName);
