@@ -375,7 +375,20 @@ public class DialogueManager : MonoBehaviour
         {
             // Node not found - this is an error
             Debug.LogError($"Could not find node with ID: {opt.nextNode}! Available node IDs: {string.Join(", ", nodes.Select(n => n.id))}");
-            // Try to continue with the first node as fallback
+            // For intro nodes, try to find node 0 as fallback
+            if (opt.nextNode == 0)
+            {
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    if (nodes[i].id == 0)
+                    {
+                        nodeIdx = i;
+                        ShowNode();
+                        return;
+                    }
+                }
+            }
+            // Last resort - go to first node
             nodeIdx = 0;
             ShowNode();
         }
