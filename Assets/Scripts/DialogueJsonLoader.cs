@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 public class DialogueJsonLoader : MonoBehaviour
 {
@@ -48,6 +49,9 @@ public class DialogueJsonLoader : MonoBehaviour
         }
 
         if (!targetManager) targetManager = GetComponent<DialogueManager>();
+        
+        Debug.Log($"Loaded {allNodes.Count} total nodes. IDs: {string.Join(", ", allNodes.Select(n => n.id))}");
+        
         targetManager.InitDecks(allNodes, deck);
     }
 

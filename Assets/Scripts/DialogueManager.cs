@@ -3,6 +3,7 @@ using UnityEngine.UI; // Required for ScrollRect, LayoutRebuilder if you add scr
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -340,11 +341,13 @@ public class DialogueManager : MonoBehaviour
 
         // Find node by ID
         int nextIndex = -1;
+        Debug.Log($"Looking for node with ID: {opt.nextNode}");
         for (int i = 0; i < nodes.Count; i++)
         {
             if (nodes[i].id == opt.nextNode)
             {
                 nextIndex = i;
+                Debug.Log($"Found node {opt.nextNode} at index {i}");
                 break;
             }
         }
@@ -354,10 +357,19 @@ public class DialogueManager : MonoBehaviour
             nodeIdx = nextIndex;
             ShowNode();
         }
+        else if (opt.nextNode == -1)
+        {
+            // -1 explicitly means end story
+            Debug.Log("Ending game - nextNode is -1");
+            SceneManager.LoadScene("EndScene");
+        }
         else
         {
-            // Assuming -1 (or any ID not found) means end story
-            SceneManager.LoadScene("EndScene");
+            // Node not found - this is an error
+            Debug.LogError($"Could not find node with ID: {opt.nextNode}! Available node IDs: {string.Join(", ", nodes.Select(n => n.id))}");
+            // Try to continue with the first node as fallback
+            nodeIdx = 0;
+            ShowNode();
         }
     }
 
